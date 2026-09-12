@@ -111,12 +111,53 @@ export function initDb(dbPath: string = "agenda.db"): Database {
       UNIQUE(year, url)
     );
     CREATE INDEX IF NOT EXISTS idx_cfm_year ON come_follow_me(year);
+
+    CREATE TABLE IF NOT EXISTS gospel_principles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      chapter_number INTEGER NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_gp_chapter ON gospel_principles(chapter_number);
+
+    CREATE TABLE IF NOT EXISTS fsy_lessons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL,
+      month INTEGER NOT NULL,
+      sunday_number INTEGER NOT NULL,
+      organization TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      url TEXT NOT NULL,
+      UNIQUE(year, month, sunday_number, organization)
+    );
+    CREATE INDEX IF NOT EXISTS idx_fsy_date ON fsy_lessons(year, month, sunday_number);
   `);
 
   // Seed initial data from image if empty
   const countRow = db.query("SELECT COUNT(*) as count FROM agendas").get() as { count: number };
   if (countRow.count === 0) {
     seedInitialAgenda(db);
+  }
+
+  // Seed gospel principles if empty
+  try {
+    const gpCount = db.query("SELECT COUNT(*) as count FROM gospel_principles").get() as { count: number };
+    if (gpCount.count === 0) {
+      seedGospelPrinciples(db);
+    }
+  } catch (e) {
+    // ignore if seeding fails in test env
+  }
+
+  // Seed FSY Sunday lessons if empty
+  try {
+    const fsyCount = db.query("SELECT COUNT(*) as count FROM fsy_lessons").get() as { count: number };
+    if (fsyCount.count === 0) {
+      seedFsyLessons(db);
+    }
+  } catch (e) {
+    // ignore if seeding fails in test env
   }
 
   return db;
@@ -494,7 +535,7 @@ export interface ComeFollowMeRecord {
   url: string;
 }
 
-export function searchHymns(db: Database, query?: string, book?: string, limit = 50): HymnRecord[] {
+export function searchHymns(db: Database, query?: string, book?: string, limit = 700): HymnRecord[] {
   let sql = "SELECT id, book, number, title, url FROM hymns WHERE 1=1";
   const params: any[] = [];
 
@@ -515,7 +556,14 @@ export function searchHymns(db: Database, query?: string, book?: string, limit =
     }
   }
 
-  sql += " ORDER BY book, number ASC LIMIT ?";
+  sql += ` ORDER BY 
+    CASE 
+      WHEN book LIKE '%1985%' THEN 1 
+      WHEN book LIKE '%Home%' THEN 2 
+      ELSE 3 
+    END ASC, 
+    number ASC 
+    LIMIT ?`;
   params.push(limit);
 
   return db.query(sql).all(...params) as HymnRecord[];
@@ -569,3 +617,123 @@ export function getComeFollowMe(db: Database, year?: number, query?: string): Co
   sql += " ORDER BY year DESC, week_number ASC";
   return db.query(sql).all(...params) as ComeFollowMeRecord[];
 }
+
+export interface GospelPrincipleRecord {
+  id?: number;
+  chapter_number: number;
+  title: string;
+  url: string;
+}
+
+export function seedGospelPrinciples(db: Database) {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const jsonPath = path.join(process.cwd(), "data", "gospel-principles.json");
+    if (!fs.existsSync(jsonPath)) return;
+    const chapters = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO gospel_principles (chapter_number, title, url)
+      VALUES (?, ?, ?)
+    `);
+    const tx = db.transaction((rows: any[]) => {
+      for (const r of rows) {
+        stmt.run(r.chapter_number, r.title, r.url);
+      }
+    });
+    tx(chapters);
+  } catch (err) {
+    console.error("Error seeding gospel principles:", err);
+  }
+}
+
+export function searchGospelPrinciples(
+  db: Database,
+  query?: string,
+  limit = 60
+): GospelPrincipleRecord[] {
+  let sql = "SELECT id, chapter_number, title, url FROM gospel_principles WHERE 1=1";
+  const params: any[] = [];
+
+  if (query && query.trim()) {
+    const q = query.trim();
+    if (/^\d+$/.test(q)) {
+      sql += " AND chapter_number = ?";
+      params.push(parseInt(q, 10));
+    } else {
+      sql += " AND (title LIKE ? OR CAST(chapter_number AS TEXT) LIKE ?)";
+      params.push(`%${q}%`, `%${q}%`);
+    }
+  }
+
+  sql += " ORDER BY chapter_number ASC LIMIT ?";
+  params.push(limit);
+
+  return db.query(sql).all(...params) as GospelPrincipleRecord[];
+}
+
+export interface FsyLessonRecord {
+  id?: number;
+  year: number;
+  month: number;
+  sunday_number: number;
+  organization: string; // 'both' | 'young_men' | 'young_women'
+  title: string;
+  description?: string;
+  url: string;
+}
+
+export function seedFsyLessons(db: Database) {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const jsonPath = path.join(process.cwd(), "data", "fsy-lessons.json");
+    if (!fs.existsSync(jsonPath)) return;
+    const lessons = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO fsy_lessons (year, month, sunday_number, organization, title, description, url)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    const tx = db.transaction((rows: any[]) => {
+      for (const r of rows) {
+        stmt.run(r.year, r.month, r.sunday_number, r.organization, r.title, r.description || "", r.url);
+      }
+    });
+    tx(lessons);
+  } catch (err) {
+    console.error("Error seeding FSY lessons:", err);
+  }
+}
+
+export function getFsyLessons(
+  db: Database,
+  year?: number,
+  month?: number,
+  sundayNumber?: number,
+  org?: string
+): FsyLessonRecord[] {
+  let sql = "SELECT id, year, month, sunday_number, organization, title, description, url FROM fsy_lessons WHERE 1=1";
+  const params: any[] = [];
+
+  if (year) {
+    sql += " AND year = ?";
+    params.push(year);
+  }
+  if (month) {
+    sql += " AND month = ?";
+    params.push(month);
+  }
+  if (sundayNumber) {
+    sql += " AND sunday_number = ?";
+    params.push(sundayNumber);
+  }
+  if (org && org !== "all") {
+    sql += " AND (organization = ? OR organization = 'both')";
+    params.push(org);
+  }
+
+  sql += " ORDER BY year ASC, month ASC, sunday_number ASC, organization ASC";
+  return db.query(sql).all(...params) as FsyLessonRecord[];
+}
+
+

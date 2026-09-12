@@ -72,7 +72,7 @@
           <span class="pill-val" id="valClosingHymn">None selected</span>
         </div>
         <div class="curated-pill" id="pillTalk1">
-          <span class="pill-label">1st Talk</span>
+          <span class="pill-label">1st Talk (Youth)</span>
           <span class="pill-val" id="valTalk1">No topic set</span>
         </div>
         <div class="curated-pill" id="pillTalk2">
@@ -94,15 +94,19 @@
     <div class="study-tabs-nav">
       <button class="study-tab active" data-tab="hymns">
         <span class="tab-icon">🎵</span>
-        <span class="tab-text">Hymns & Music (664)</span>
+        <span class="tab-text">Hymns & Music</span>
       </button>
       <button class="study-tab" data-tab="talks">
         <span class="tab-icon">🎙️</span>
-        <span class="tab-text">General Conference (500+)</span>
+        <span class="tab-text">General Conference (2nd & 3rd Talks)</span>
+      </button>
+      <button class="study-tab" data-tab="gp">
+        <span class="tab-icon">📖</span>
+        <span class="tab-text">Gospel Principles (1st Talk - Youth)</span>
       </button>
       <button class="study-tab" data-tab="cfm">
-        <span class="tab-icon">📖</span>
-        <span class="tab-text">Come, Follow Me</span>
+        <span class="tab-icon">📜</span>
+        <span class="tab-text">Come, Follow Me (Quorums)</span>
       </button>
     </div>
 
@@ -117,10 +121,10 @@
           <button class="clear-search" id="clearHymnSearch">✕</button>
         </div>
         <div class="book-filter-chips">
-          <button class="chip active" data-book="all">All Books</button>
-          <button class="chip" data-book="Hymns (1985)">Hymns (1985)</button>
+          <button class="chip active" data-book="Hymns (1985)">Hymns 1985 (Old Hymns)</button>
+          <button class="chip" data-book="Hymns for Home and Church">Hymns for Home & Church (New Hymns)</button>
+          <button class="chip" data-book="all">All Books (664)</button>
           <button class="chip" data-book="Children's Songbook">Children’s Songbook</button>
-          <button class="chip" data-book="Hymns for Home and Church">Hymns for Home & Church</button>
         </div>
       </div>
 
@@ -141,6 +145,14 @@
           <button class="clear-search" id="clearTalkSearch">✕</button>
         </div>
         <div class="dropdown-filter-row">
+          <select id="talkSortSelect" class="filter-select" title="Sort Conference Talks">
+            <option value="date-desc">📅 Date: Newest First</option>
+            <option value="date-asc">📅 Date: Oldest First</option>
+            <option value="title-asc">🔤 Title (A → Z)</option>
+            <option value="title-desc">🔤 Title (Z → A)</option>
+            <option value="speaker-asc">👤 Speaker (A → Z)</option>
+            <option value="speaker-desc">👤 Speaker (Z → A)</option>
+          </select>
           <select id="talkYearSelect" class="filter-select">
             <option value="">All Years (2020–2026)</option>
             <option value="2026">2026</option>
@@ -172,12 +184,32 @@
       </div>
 
       <div class="results-stats" id="talkResultsCount">Showing conference talks...</div>
-      <div class="cards-grid" id="talksGrid">
-        <!-- Dynamically rendered talk cards -->
+      <div id="talksGridContainer">
+        <div class="cards-grid" id="talksGrid">
+          <!-- Dynamically rendered talk cards -->
+        </div>
       </div>
     </section>
 
-    <!-- TAB 3: COME, FOLLOW ME -->
+    <!-- TAB 3: GOSPEL PRINCIPLES (1ST TALK FOR YOUTH) -->
+    <section class="tab-panel" id="tabGp">
+      <div class="filter-controls">
+        <div class="search-input-wrap">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="gpSearchInput" placeholder="Search 47 Gospel Principles chapters by number or title (e.g. 26, Sacrifice, Prayer)...">
+          <button class="clear-search" id="clearGpSearch">✕</button>
+        </div>
+      </div>
+
+      <div class="results-stats" id="gpResultsCount">Showing 47 chapters for 1st Talk (Youth)...</div>
+      <div class="cards-grid" id="gpGrid">
+        <!-- Dynamically rendered Gospel Principles cards -->
+      </div>
+    </section>
+
+    <!-- TAB 4: COME, FOLLOW ME -->
     <section class="tab-panel" id="tabCfm">
       <div class="filter-controls">
         <div class="search-input-wrap">
@@ -197,6 +229,8 @@
       </div>
 
       <div class="results-stats" id="cfmResultsCount">Showing lessons...</div>
+      <!-- Scheduled CFM Highlight Banner -->
+      <div id="cfmActiveMatchBanner" class="cfm-scheduled-banner" style="display: none;"></div>
       <div class="cfm-timeline-grid" id="cfmGrid">
         <!-- Dynamically rendered CFM lessons -->
       </div>

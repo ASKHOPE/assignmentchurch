@@ -202,17 +202,18 @@
               <!-- 1st Talk -->
               <div class="form-row">
                 <div class="row-label-group">
-                  <span class="row-label">1st Talk</span>
+                  <span class="row-label">1st Talk (Youth)</span>
                   <div class="org-selector-wrap">
                     <select id="talk1-org" class="select-org-pill" aria-label="1st Talk Organization">
-                      <option value="Bishopric">Bishopric</option>
-                      <option value="Stake High Councilor">Stake High Councilor</option>
                       <option value="Youth - Young Men">Youth - Young Men</option>
                       <option value="Youth - Young Women">Youth - Young Women</option>
+                      <option value="Bishopric">Bishopric</option>
+                      <option value="Stake High Councilor">Stake High Councilor</option>
                       <option value="Custom">Custom...</option>
                     </select>
                     <input type="text" id="talk1-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
                   </div>
+                  <a href="/study.html?tab=gp" id="btn-curate-gp-link" class="btn-browse-pill" title="Curate Gospel Principles for Youth Talk">Youth Topic ↗</a>
                 </div>
                 <div class="speaker-topic-group">
                   <input type="text" id="talk1-title" class="text-input font-medium" placeholder="Topic: e.g. Seminary and Institute Graduations" list="topics-datalist">
@@ -388,7 +389,12 @@
             <span class="card-icon">📖</span>
             <h2 class="card-title">Second Hour Classes (25 Minutes Each)</h2>
           </div>
-          <span class="pill-badge pill-terracotta">Instruction & Quorums</span>
+          <div class="card-header-actions">
+            <button id="btn-autofill-cfm" class="btn btn-sm btn-outline-cfm" type="button" title="Automatically match Come, Follow Me and FSY Sunday lessons to this date">
+              <span>⚡ Auto-Fill CFM & FSY</span>
+            </button>
+            <span class="pill-badge pill-terracotta">Instruction & Quorums</span>
+          </div>
         </div>
 
         <div class="card-body classes-layout">

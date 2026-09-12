@@ -90,6 +90,29 @@ export async function ensureD1Schema(db: D1Database): Promise<void> {
       )
     `).run();
 
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS gospel_principles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        chapter_number INTEGER NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        url TEXT NOT NULL
+      )
+    `).run();
+
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS fsy_lessons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        year INTEGER NOT NULL,
+        month INTEGER NOT NULL,
+        sunday_number INTEGER NOT NULL,
+        organization TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        url TEXT NOT NULL,
+        UNIQUE(year, month, sunday_number, organization)
+      )
+    `).run();
+
     schemaInitialized = true;
   } catch (err) {
     console.warn("D1 schema initialization warning:", err);
@@ -343,7 +366,7 @@ export async function importAllDataD1(db: D1Database, data: any): Promise<void> 
   }
 }
 
-export async function searchHymnsD1(db: D1Database, query?: string, book?: string, limit = 50) {
+export async function searchHymnsD1(db: D1Database, query?: string, book?: string, limit = 700) {
   await ensureD1Schema(db);
   let sql = "SELECT id, book, number, title, url FROM hymns WHERE 1=1";
   const params: any[] = [];
@@ -364,7 +387,14 @@ export async function searchHymnsD1(db: D1Database, query?: string, book?: strin
     }
   }
 
-  sql += " ORDER BY book, number ASC LIMIT ?";
+  sql += ` ORDER BY 
+    CASE 
+      WHEN book LIKE '%1985%' THEN 1 
+      WHEN book LIKE '%Home%' THEN 2 
+      ELSE 3 
+    END ASC, 
+    number ASC 
+    LIMIT ?`;
   params.push(limit);
 
   const { results } = await db.prepare(sql).bind(...params).all<any>();
@@ -468,4 +498,91 @@ export async function seedChurchDataD1(
     cfmCount: cfm.length,
   };
 }
+
+export async function searchGospelPrinciplesD1(
+  db: D1Database,
+  query?: string,
+  limit = 60
+) {
+  await ensureD1Schema(db);
+  let sql = "SELECT id, chapter_number, title, url FROM gospel_principles WHERE 1=1";
+  const params: any[] = [];
+
+  if (query && query.trim()) {
+    const q = query.trim();
+    if (/^\d+$/.test(q)) {
+      sql += " AND chapter_number = ?";
+      params.push(parseInt(q, 10));
+    } else {
+      sql += " AND (title LIKE ? OR CAST(chapter_number AS TEXT) LIKE ?)";
+      params.push(`%${q}%`, `%${q}%`);
+    }
+  }
+
+  sql += " ORDER BY chapter_number ASC LIMIT ?";
+  params.push(limit);
+
+  const { results } = await db.prepare(sql).bind(...params).all<any>();
+  return results || [];
+}
+
+export async function seedGospelPrinciplesD1(db: D1Database, chapters: any[]) {
+  await ensureD1Schema(db);
+  for (let i = 0; i < chapters.length; i += 50) {
+    const chunk = chapters.slice(i, i + 50);
+    const stmts = chunk.map((c) =>
+      db.prepare("INSERT OR REPLACE INTO gospel_principles (chapter_number, title, url) VALUES (?, ?, ?)")
+        .bind(c.chapter_number, c.title, c.url)
+    );
+    await db.batch(stmts);
+  }
+  return { count: chapters.length };
+}
+
+export async function getFsyLessonsD1(
+  db: D1Database,
+  year?: number,
+  month?: number,
+  sundayNumber?: number,
+  org?: string
+) {
+  await ensureD1Schema(db);
+  let sql = "SELECT id, year, month, sunday_number, organization, title, description, url FROM fsy_lessons WHERE 1=1";
+  const params: any[] = [];
+
+  if (year) {
+    sql += " AND year = ?";
+    params.push(year);
+  }
+  if (month) {
+    sql += " AND month = ?";
+    params.push(month);
+  }
+  if (sundayNumber) {
+    sql += " AND sunday_number = ?";
+    params.push(sundayNumber);
+  }
+  if (org && org !== "all") {
+    sql += " AND (organization = ? OR organization = 'both')";
+    params.push(org);
+  }
+
+  sql += " ORDER BY year ASC, month ASC, sunday_number ASC, organization ASC";
+  const { results } = await db.prepare(sql).bind(...params).all<any>();
+  return results || [];
+}
+
+export async function seedFsyLessonsD1(db: D1Database, lessons: any[]) {
+  await ensureD1Schema(db);
+  for (let i = 0; i < lessons.length; i += 50) {
+    const chunk = lessons.slice(i, i + 50);
+    const stmts = chunk.map((l) =>
+      db.prepare("INSERT OR REPLACE INTO fsy_lessons (year, month, sunday_number, organization, title, description, url) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(l.year, l.month, l.sunday_number, l.organization, l.title, l.description || "", l.url)
+    );
+    await db.batch(stmts);
+  }
+  return { count: lessons.length };
+}
+
 

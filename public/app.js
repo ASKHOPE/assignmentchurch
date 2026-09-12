@@ -543,6 +543,120 @@
 
     // Theme Toggle
     btnTheme.addEventListener("click", toggleTheme);
+
+    // Auto-fill CFM & FSY Lessons for All Quorums
+    const btnAutofillCfm = document.getElementById("btn-autofill-cfm");
+    if (btnAutofillCfm) {
+      btnAutofillCfm.addEventListener("click", async () => {
+        btnAutofillCfm.disabled = true;
+        btnAutofillCfm.innerHTML = "<span>⏳ Matching Lessons...</span>";
+        try {
+          const d = new Date(currentDate + "T00:00:00");
+          const year = d.getFullYear();
+          const month = d.getMonth() + 1;
+          const day = d.getDate();
+          const sundayNum = Math.ceil(day / 7);
+
+          // 1. Fetch CFM lesson
+          const cfmRes = await fetch(`/api/come-follow-me?year=${year}`);
+          const cfmData = await cfmRes.json();
+          const lessons = cfmData.lessons || [];
+          const match = lessons.find(l => doesDateMatchRangeApp(currentDate, l.date_range, l.year));
+
+          const fullTopic = match && match.scriptures 
+            ? `${match.date_range}: “${match.title}” (${match.scriptures})`
+            : (match ? `${match.date_range}: “${match.title}”` : "");
+          const shortTopic = match ? `${match.date_range}: “${match.title}”` : "";
+          const cfmUrl = match ? match.url : "";
+
+          // 2. Fetch FSY lesson for Young Men and Young Women
+          const fsyRes = await fetch(`/api/fsy-lessons?year=${year}&month=${month}&sunday=${sundayNum}`);
+          let ymLesson = null;
+          let ywLesson = null;
+          if (fsyRes.ok) {
+            const fsyData = await fsyRes.json();
+            const fsyLessons = fsyData.lessons || [];
+            ymLesson = fsyLessons.find(l => l.organization === "young_men") || fsyLessons.find(l => l.organization === "both");
+            ywLesson = fsyLessons.find(l => l.organization === "young_women") || fsyLessons.find(l => l.organization === "both");
+          }
+
+          const ymTopic = ymLesson ? ymLesson.title : shortTopic;
+          const ymUrl = ymLesson ? ymLesson.url : cfmUrl;
+          const ywTopic = ywLesson ? ywLesson.title : shortTopic;
+          const ywUrl = ywLesson ? ywLesson.url : cfmUrl;
+
+          // Helper to set DOM value
+          const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || "";
+          };
+
+          setVal("ss-topic", fullTopic);
+          setVal("ss-url", cfmUrl);
+          setVal("pri-topic", shortTopic);
+          setVal("pri-url", cfmUrl);
+          setVal("eq-topic", shortTopic);
+          setVal("eq-url", cfmUrl);
+          setVal("rs-topic", shortTopic);
+          setVal("rs-url", cfmUrl);
+          setVal("ym-topic", ymTopic);
+          setVal("ym-url", ymUrl);
+          setVal("yw-topic", ywTopic);
+          setVal("yw-url", ywUrl);
+
+          // Update currentAgenda.classes_json
+          if (!currentAgenda.classes_json) currentAgenda.classes_json = {};
+          const c = currentAgenda.classes_json;
+          c.sunday_school = { ...(c.sunday_school || {}), topic: fullTopic, url: cfmUrl };
+          c.primary = { ...(c.primary || {}), topic: shortTopic, url: cfmUrl };
+          c.elders_quorum = { ...(c.elders_quorum || {}), topic: shortTopic, url: cfmUrl };
+          c.relief_society = { ...(c.relief_society || {}), topic: shortTopic, url: cfmUrl };
+          c.young_men = { ...(c.young_men || {}), topic: ymTopic, url: ymUrl };
+          c.young_women = { ...(c.young_women || {}), topic: ywTopic, url: ywUrl };
+
+          scheduleSave();
+          showToast("✓ Applied CFM & FSY Sunday Lessons to ALL Quorums!");
+        } catch (err) {
+          console.error("Auto-fill error:", err);
+          showToast("Failed to auto-fill classes");
+        } finally {
+          btnAutofillCfm.disabled = false;
+          btnAutofillCfm.innerHTML = "<span>⚡ Auto-Fill CFM & FSY</span>";
+        }
+      });
+    }
+  }
+
+  function doesDateMatchRangeApp(dateStr, rangeStr, year) {
+    if (!dateStr || !rangeStr) return false;
+    const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+    if (!rangeStr.match(/[–\-]/)) {
+      const d = new Date(dateStr + "T00:00:00");
+      const mName = d.toLocaleDateString("en-US", { month: "long" });
+      const day = d.getDate();
+      return rangeStr.includes(mName) && rangeStr.includes(String(day));
+    }
+    const parts = rangeStr.split(/[–\-]/).map(s => s.trim());
+    if (parts.length !== 2) return false;
+    let m1 = -1, d1 = 0;
+    for (let i = 0; i < months.length; i++) {
+      if (parts[0].toLowerCase().includes(months[i])) { m1 = i; break; }
+    }
+    const d1Match = parts[0].match(/\d+/);
+    if (d1Match) d1 = parseInt(d1Match[0], 10);
+    let m2 = m1, d2 = 0;
+    for (let i = 0; i < months.length; i++) {
+      if (parts[1].toLowerCase().includes(months[i])) { m2 = i; break; }
+    }
+    const d2Match = parts[1].match(/\d+/);
+    if (d2Match) d2 = parseInt(d2Match[0], 10);
+    if (m1 === -1 || !d1 || !d2) return false;
+    const yr = year || new Date(dateStr + "T00:00:00").getFullYear();
+    let y1 = yr, y2 = yr;
+    if (m1 === 11 && m2 === 0) y1 = yr - 1;
+    const start = new Date(Date.UTC(y1, m1, d1)).toISOString().split("T")[0];
+    const end = new Date(Date.UTC(y2, m2, d2, 23, 59, 59)).toISOString().split("T")[0];
+    return dateStr >= start && dateStr <= end;
   }
 
   /* --------------------------------------------------------------------------

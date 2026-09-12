@@ -9,7 +9,9 @@ import {
   importAllData,
   searchHymns,
   searchConferenceTalks,
-  getComeFollowMe
+  getComeFollowMe,
+  searchGospelPrinciples,
+  getFsyLessons
 } from "./db";
 import { 
   formatFullAgendaWhatsApp, 
@@ -109,7 +111,7 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
           if (req.method === "GET" && path === "/api/hymns") {
             const q = url.searchParams.get("q") || undefined;
             const book = url.searchParams.get("book") || undefined;
-            const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+            const limit = parseInt(url.searchParams.get("limit") || "700", 10);
             const hymns = searchHymns(db, q, book, limit);
             return Response.json({ success: true, count: hymns.length, hymns }, {
               headers: { "Access-Control-Allow-Origin": "*" }
@@ -122,7 +124,7 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             const speaker = url.searchParams.get("speaker") || undefined;
             const yearStr = url.searchParams.get("year");
             const year = yearStr ? parseInt(yearStr, 10) : undefined;
-            const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+            const limit = parseInt(url.searchParams.get("limit") || "600", 10);
             const talks = searchConferenceTalks(db, q, speaker, year, limit);
             return Response.json({ success: true, count: talks.length, talks }, {
               headers: { "Access-Control-Allow-Origin": "*" }
@@ -135,6 +137,31 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             const year = yearStr ? parseInt(yearStr, 10) : undefined;
             const q = url.searchParams.get("q") || undefined;
             const lessons = getComeFollowMe(db, year, q);
+            return Response.json({ success: true, count: lessons.length, lessons }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/gospel-principles
+          if (req.method === "GET" && path === "/api/gospel-principles") {
+            const q = url.searchParams.get("q") || undefined;
+            const limit = parseInt(url.searchParams.get("limit") || "60", 10);
+            const chapters = searchGospelPrinciples(db, q, limit);
+            return Response.json({ success: true, count: chapters.length, chapters }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/fsy-lessons
+          if (req.method === "GET" && path === "/api/fsy-lessons") {
+            const yearStr = url.searchParams.get("year");
+            const year = yearStr ? parseInt(yearStr, 10) : undefined;
+            const monthStr = url.searchParams.get("month");
+            const month = monthStr ? parseInt(monthStr, 10) : undefined;
+            const sundayStr = url.searchParams.get("sunday");
+            const sundayNumber = sundayStr ? parseInt(sundayStr, 10) : undefined;
+            const org = url.searchParams.get("org") || undefined;
+            const lessons = getFsyLessons(db, year, month, sundayNumber, org);
             return Response.json({ success: true, count: lessons.length, lessons }, {
               headers: { "Access-Control-Allow-Origin": "*" }
             });

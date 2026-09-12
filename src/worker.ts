@@ -13,7 +13,11 @@ import {
   searchHymnsD1,
   searchConferenceTalksD1,
   getComeFollowMeD1,
+  searchGospelPrinciplesD1,
+  getFsyLessonsD1,
   seedChurchDataD1,
+  seedGospelPrinciplesD1,
+  seedFsyLessonsD1,
 } from "./d1-db";
 import {
   formatFullAgendaWhatsApp,
@@ -28,6 +32,8 @@ import { createDefaultAgenda } from "./agenda-utils";
 import hymnsFallback from "../data/hymns.json";
 import talksFallback from "../data/conference-talks.json";
 import cfmFallback from "../data/come-follow-me.json";
+import gpFallback from "../data/gospel-principles.json";
+import fsyFallback from "../data/fsy-lessons.json";
 
 export interface Env {
   ASSETS: Fetcher;
@@ -120,7 +126,7 @@ export default {
         if (request.method === "GET" && path === "/api/hymns") {
           const q = (url.searchParams.get("q") || "").toLowerCase().trim();
           const book = url.searchParams.get("book") || undefined;
-          const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+          const limit = parseInt(url.searchParams.get("limit") || "700", 10);
           let hymns = [];
           if (env.DB) {
             hymns = await searchHymnsD1(env.DB, q, book, limit);
@@ -145,7 +151,7 @@ export default {
           const speaker = (url.searchParams.get("speaker") || "").toLowerCase().trim();
           const yearStr = url.searchParams.get("year");
           const year = yearStr ? parseInt(yearStr, 10) : undefined;
-          const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+          const limit = parseInt(url.searchParams.get("limit") || "600", 10);
           let talks = [];
           if (env.DB) {
             talks = await searchConferenceTalksD1(env.DB, q, speaker, year, limit);
@@ -182,13 +188,65 @@ export default {
           });
         }
 
+        // GET /api/gospel-principles
+        if (request.method === "GET" && path === "/api/gospel-principles") {
+          const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+          const limit = parseInt(url.searchParams.get("limit") || "60", 10);
+          let chapters = [];
+          if (env.DB) {
+            chapters = await searchGospelPrinciplesD1(env.DB, q, limit);
+          } else {
+            chapters = (gpFallback as any[]).filter(c => {
+              if (q && !c.title.toLowerCase().includes(q) && !String(c.chapter_number).includes(q)) return false;
+              return true;
+            }).slice(0, limit);
+          }
+          return Response.json({ success: true, count: chapters.length, chapters }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/fsy-lessons
+        if (request.method === "GET" && path === "/api/fsy-lessons") {
+          const yearStr = url.searchParams.get("year");
+          const year = yearStr ? parseInt(yearStr, 10) : undefined;
+          const monthStr = url.searchParams.get("month");
+          const month = monthStr ? parseInt(monthStr, 10) : undefined;
+          const sundayStr = url.searchParams.get("sunday");
+          const sundayNumber = sundayStr ? parseInt(sundayStr, 10) : undefined;
+          const org = url.searchParams.get("org") || undefined;
+          let lessons = [];
+          if (env.DB) {
+            lessons = await getFsyLessonsD1(env.DB, year, month, sundayNumber, org);
+          } else {
+            lessons = (fsyFallback as any[]).filter(l => {
+              if (year && l.year !== year) return false;
+              if (month && l.month !== month) return false;
+              if (sundayNumber && l.sunday_number !== sundayNumber) return false;
+              if (org && org !== "all" && l.organization !== "both" && l.organization !== org) return false;
+              return true;
+            });
+          }
+          return Response.json({ success: true, count: lessons.length, lessons }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
         // GET /api/admin/seed-d1 (One-click seed of remote Cloudflare D1)
         if (request.method === "GET" && path === "/api/admin/seed-d1") {
           if (!env.DB) {
             return Response.json({ error: "No DB binding found" }, { status: 400 });
           }
           const result = await seedChurchDataD1(env.DB, hymnsFallback, talksFallback, cfmFallback);
-          return Response.json({ success: true, message: "Cloudflare D1 seeded successfully!", ...result }, {
+          const gpResult = await seedGospelPrinciplesD1(env.DB, gpFallback);
+          const fsyResult = await seedFsyLessonsD1(env.DB, fsyFallback);
+          return Response.json({ 
+            success: true, 
+            message: "Cloudflare D1 seeded successfully!", 
+            ...result, 
+            gospelPrinciplesCount: gpResult.count,
+            fsyLessonsCount: fsyResult.count
+          }, {
             headers: { "Access-Control-Allow-Origin": "*" },
           });
         }
