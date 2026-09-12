@@ -91,4 +91,15 @@ describe("Bun REST API Server", () => {
     const importJson = await importRes.json();
     expect(importJson.success).toBe(true);
   });
+
+  test("GET /api/holidays returns LDS and Indian holidays", async () => {
+    const res = await fetch(`${baseUrl}/api/holidays?year=2026&include_indian=true`);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.success).toBe(true);
+    expect(json.year).toBe(2026);
+    expect(json.holidays.length).toBeGreaterThan(15);
+    const names = json.holidays.map((h: any) => h.name);
+    expect(names.some((n: string) => n.includes("Relief Society"))).toBe(true);
+  });
 });

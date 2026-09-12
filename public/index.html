@@ -560,6 +560,84 @@
     </div>
   </div>
 
+  <!-- Beautiful Full Date Calendar & Celebrations Modal -->
+  <div id="full-calendar-modal" class="modal-backdrop full-calendar-backdrop" role="dialog" aria-modal="true" aria-labelledby="full-cal-title">
+    <div class="modal-card full-calendar-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🗓️</span>
+          <div>
+            <h2 id="full-cal-title" class="modal-title">Ward Calendar & Celebrations</h2>
+            <p class="cal-subtitle">Explore LDS commemorations and live-synced Indian/Hindu holidays</p>
+          </div>
+        </div>
+        <button id="btn-close-full-cal" class="btn-close" aria-label="Close Calendar">✕</button>
+      </div>
+
+      <div class="modal-body cal-modal-body">
+        <!-- Calendar Navigation & Controls Bar -->
+        <div class="cal-controls-bar">
+          <div class="cal-nav-group">
+            <button id="btn-cal-prev-year" class="btn btn-secondary btn-sm" title="Previous Year">«</button>
+            <button id="btn-cal-prev-month" class="btn btn-secondary btn-sm" title="Previous Month">‹</button>
+            <span id="full-cal-month-year" class="cal-month-year-label">September 2026</span>
+            <button id="btn-cal-next-month" class="btn btn-secondary btn-sm" title="Next Month">›</button>
+            <button id="btn-cal-next-year" class="btn btn-secondary btn-sm" title="Next Year">»</button>
+            <button id="btn-cal-today" class="btn btn-ghost btn-sm" title="Go to Current Date">Today</button>
+          </div>
+
+          <!-- Holiday Toggles -->
+          <div class="cal-toggles-cluster">
+            <label class="cal-toggle-pill cal-toggle-lds" title="Toggle LDS Church commemorations">
+              <input type="checkbox" id="cal-toggle-lds" checked>
+              <span class="toggle-indicator"></span>
+              <span class="toggle-text">⛪ LDS Celebrations</span>
+            </label>
+
+            <label class="cal-toggle-pill cal-toggle-indian" title="Toggle Indian & Hindu holidays fetched live from Google Calendar">
+              <input type="checkbox" id="cal-toggle-indian" checked>
+              <span class="toggle-indicator"></span>
+              <span class="toggle-text">🪔 Indian / Hindu Holidays</span>
+              <span class="pill-badge pill-live" id="indian-feed-status">Live</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Calendar Month Grid -->
+        <div class="cal-grid-wrapper">
+          <div class="cal-grid-header">
+            <div class="cal-col-sun">Sun</div>
+            <div>Mon</div>
+            <div>Tue</div>
+            <div>Wed</div>
+            <div>Thu</div>
+            <div>Fri</div>
+            <div>Sat</div>
+          </div>
+          <div id="cal-days-grid" class="cal-days-grid">
+            <!-- Dynamically rendered 42 day cells -->
+          </div>
+        </div>
+
+        <!-- Selected Date Details Banner -->
+        <div id="cal-selected-details" class="cal-selected-details">
+          <div class="cal-details-header">
+            <div class="cal-details-date-info">
+              <span id="cal-details-date" class="cal-details-title">Select a date</span>
+              <span id="cal-details-badge" class="pill-badge pill-amber" style="display:none;"></span>
+            </div>
+            <button id="btn-cal-jump-agenda" class="btn btn-primary btn-sm" style="display:none;">
+              <span>⛪ Open Sunday Agenda</span>
+            </button>
+          </div>
+          <div id="cal-details-events-list" class="cal-details-events-list">
+            <div class="cal-empty-hint">Click any day to view celebrations, Sunday rotation, and open agendas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
 

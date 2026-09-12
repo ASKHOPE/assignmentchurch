@@ -16,6 +16,7 @@ import {
   getWhatsAppShareUrl 
 } from "./whatsapp-formatter";
 import { getNextSunday, getPrevSunday } from "./agenda-utils";
+import { getHolidaysForYear } from "./holidays";
 import { join } from "path";
 
 export function createServer(dbPath: string = "agenda.db", port: number = 3000) {
@@ -86,6 +87,17 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             const q = url.searchParams.get("q") || undefined;
             const suggestions = getAutocompleteSuggestions(db, category, q);
             return Response.json({ success: true, suggestions }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/holidays
+          if (req.method === "GET" && path === "/api/holidays") {
+            const yearStr = url.searchParams.get("year");
+            const year = yearStr ? parseInt(yearStr, 10) : new Date().getFullYear();
+            const includeIndian = url.searchParams.get("include_indian") !== "false";
+            const holidays = await getHolidaysForYear(year, includeIndian);
+            return Response.json({ success: true, year, count: holidays.length, holidays }, {
               headers: { "Access-Control-Allow-Origin": "*" }
             });
           }

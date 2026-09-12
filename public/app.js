@@ -11,6 +11,10 @@
   let activePreset = "full";
   let currentTab = "tab-sacrament";
   let popoverDate = new Date(2026, 8, 13); // For browsing months in calendar popover
+  let fullCalYear = 2026;
+  let fullCalMonth = 8; // 0-indexed (8 = September)
+  let fullCalSelectedDate = "2026-09-13";
+  let fullCalHolidays = {}; // Year-keyed holiday cache
 
   // Elements
   const datePicker = document.getElementById("date-picker");
@@ -30,6 +34,24 @@
   const popoverMonthLabel = document.getElementById("popover-month-label");
   const popoverSundaysList = document.getElementById("popover-sundays-list");
   const btnTriggerNativePicker = document.getElementById("btn-trigger-native-picker");
+
+  // Beautiful Full Calendar Modal Elements
+  const fullCalModal = document.getElementById("full-calendar-modal");
+  const btnCloseFullCal = document.getElementById("btn-close-full-cal");
+  const fullCalMonthYear = document.getElementById("full-cal-month-year");
+  const btnCalPrevYear = document.getElementById("btn-cal-prev-year");
+  const btnCalPrevMonth = document.getElementById("btn-cal-prev-month");
+  const btnCalNextMonth = document.getElementById("btn-cal-next-month");
+  const btnCalNextYear = document.getElementById("btn-cal-next-year");
+  const btnCalToday = document.getElementById("btn-cal-today");
+  const calToggleLds = document.getElementById("cal-toggle-lds");
+  const calToggleIndian = document.getElementById("cal-toggle-indian");
+  const calDaysGrid = document.getElementById("cal-days-grid");
+  const calDetailsDate = document.getElementById("cal-details-date");
+  const calDetailsBadge = document.getElementById("cal-details-badge");
+  const calDetailsEventsList = document.getElementById("cal-details-events-list");
+  const btnCalJumpAgenda = document.getElementById("btn-cal-jump-agenda");
+  const indianFeedStatus = document.getElementById("indian-feed-status");
 
   // Meeting Type & Conference Elements
   const meetingTypeBtns = document.querySelectorAll(".meeting-type-btn");
@@ -365,13 +387,79 @@
     btnTriggerNativePicker.addEventListener("click", (e) => {
       e.stopPropagation();
       closeCalendarPopover();
-      if (typeof datePicker.showPicker === "function") {
-        datePicker.showPicker();
-      } else {
-        datePicker.focus();
-        datePicker.click();
-      }
+      openFullCalendarModal();
     });
+
+    // Beautiful Full Calendar Modal Controls
+    if (btnCloseFullCal) {
+      btnCloseFullCal.addEventListener("click", closeFullCalendarModal);
+    }
+
+    if (fullCalModal) {
+      fullCalModal.addEventListener("click", (e) => {
+        if (e.target === fullCalModal) closeFullCalendarModal();
+      });
+    }
+
+    if (btnCalPrevMonth) {
+      btnCalPrevMonth.addEventListener("click", () => {
+        fullCalMonth--;
+        if (fullCalMonth < 0) {
+          fullCalMonth = 11;
+          fullCalYear--;
+        }
+        loadAndRenderFullCalendar();
+      });
+    }
+
+    if (btnCalNextMonth) {
+      btnCalNextMonth.addEventListener("click", () => {
+        fullCalMonth++;
+        if (fullCalMonth > 11) {
+          fullCalMonth = 0;
+          fullCalYear++;
+        }
+        loadAndRenderFullCalendar();
+      });
+    }
+
+    if (btnCalPrevYear) {
+      btnCalPrevYear.addEventListener("click", () => {
+        fullCalYear--;
+        loadAndRenderFullCalendar();
+      });
+    }
+
+    if (btnCalNextYear) {
+      btnCalNextYear.addEventListener("click", () => {
+        fullCalYear++;
+        loadAndRenderFullCalendar();
+      });
+    }
+
+    if (btnCalToday) {
+      btnCalToday.addEventListener("click", () => {
+        const today = new Date();
+        fullCalYear = today.getFullYear();
+        fullCalMonth = today.getMonth();
+        const m = String(today.getMonth() + 1).padStart(2, "0");
+        const d = String(today.getDate()).padStart(2, "0");
+        fullCalSelectedDate = `${fullCalYear}-${m}-${d}`;
+        loadAndRenderFullCalendar();
+      });
+    }
+
+    if (calToggleLds) {
+      calToggleLds.addEventListener("change", () => {
+        renderFullCalendarGrid();
+      });
+    }
+
+    if (calToggleIndian) {
+      calToggleIndian.addEventListener("change", () => {
+        renderFullCalendarGrid();
+      });
+    }
 
     // Close calendar popover on click outside
     document.addEventListener("click", (e) => {
@@ -848,6 +936,286 @@
       });
 
       popoverSundaysList.appendChild(btn);
+    }
+  }
+
+  /* --------------------------------------------------------------------------
+     Full Calendar & Celebrations Modal
+     -------------------------------------------------------------------------- */
+  async function openFullCalendarModal() {
+    const [y, m, d] = currentDate.split("-").map(Number);
+    fullCalYear = y;
+    fullCalMonth = m - 1;
+    fullCalSelectedDate = currentDate;
+
+    fullCalModal.classList.add("open");
+    await loadAndRenderFullCalendar();
+    selectFullCalDate(fullCalSelectedDate);
+  }
+
+  function closeFullCalendarModal() {
+    fullCalModal.classList.remove("open");
+  }
+
+  async function loadAndRenderFullCalendar() {
+    // Check if we have holidays cached for this year
+    if (!fullCalHolidays[fullCalYear]) {
+      try {
+        if (indianFeedStatus) indianFeedStatus.textContent = "Syncing...";
+        const res = await fetch(`/api/holidays?year=${fullCalYear}&include_indian=true`);
+        const json = await res.json();
+        if (json.success) {
+          fullCalHolidays[fullCalYear] = json.holidays;
+          if (indianFeedStatus) indianFeedStatus.textContent = "Live";
+        }
+      } catch (err) {
+        console.warn("Could not fetch holidays:", err);
+        if (indianFeedStatus) indianFeedStatus.textContent = "Offline";
+      }
+    }
+
+    renderFullCalendarGrid();
+  }
+
+  function renderFullCalendarGrid() {
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    fullCalMonthYear.textContent = `${monthNames[fullCalMonth]} ${fullCalYear}`;
+
+    calDaysGrid.innerHTML = "";
+
+    const holidays = fullCalHolidays[fullCalYear] || [];
+    const showLds = calToggleLds ? calToggleLds.checked : true;
+    const showIndian = calToggleIndian ? calToggleIndian.checked : true;
+
+    // Filter active holidays
+    const activeHolidays = holidays.filter((h) => {
+      if (h.category === "lds" && !showLds) return false;
+      if (h.category === "indian" && !showIndian) return false;
+      return true;
+    });
+
+    // Group holidays by date
+    const holidaysByDate = {};
+    for (const h of activeHolidays) {
+      if (!holidaysByDate[h.date]) holidaysByDate[h.date] = [];
+      holidaysByDate[h.date].push(h);
+    }
+
+    // Grid starts on Sunday on or before 1st of fullCalMonth
+    const firstOfMonth = new Date(fullCalYear, fullCalMonth, 1, 12, 0, 0);
+    const dayOfWeek = firstOfMonth.getDay(); // 0 = Sunday
+    const startDate = new Date(firstOfMonth);
+    startDate.setDate(firstOfMonth.getDate() - dayOfWeek);
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    // 42 cells (6 rows of 7 days)
+    for (let i = 0; i < 42; i++) {
+      const cellDate = new Date(startDate);
+      cellDate.setDate(startDate.getDate() + i);
+
+      const cy = cellDate.getFullYear();
+      const cm = String(cellDate.getMonth() + 1).padStart(2, "0");
+      const cd = String(cellDate.getDate()).padStart(2, "0");
+      const dateStr = `${cy}-${cm}-${cd}`;
+
+      const isCurrentMonth = cellDate.getMonth() === fullCalMonth;
+      const isSunday = cellDate.getDay() === 0;
+      const isToday = dateStr === todayStr;
+      const isSelected = dateStr === fullCalSelectedDate;
+
+      const cell = document.createElement("div");
+      cell.className = `cal-day-cell ${isCurrentMonth ? "" : "other-month"} ${isSunday ? "is-sunday" : ""} ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}`;
+      cell.dataset.date = dateStr;
+
+      // Top bar with day number and Sunday indicator
+      const cellTop = document.createElement("div");
+      cellTop.className = "cal-cell-top";
+
+      const dayNum = document.createElement("span");
+      dayNum.className = "cal-day-num";
+      dayNum.textContent = cellDate.getDate();
+      cellTop.appendChild(dayNum);
+
+      if (isSunday) {
+        const sunBadge = document.createElement("span");
+        sunBadge.className = "cal-sunday-badge";
+        const weekNum = Math.min(5, Math.ceil(cellDate.getDate() / 7));
+        sunBadge.textContent = `${weekNum}${weekNum === 1 ? "st" : weekNum === 2 ? "nd" : weekNum === 3 ? "rd" : "th"}`;
+        cellTop.appendChild(sunBadge);
+      }
+
+      cell.appendChild(cellTop);
+
+      // Events container
+      const dayEvents = holidaysByDate[dateStr] || [];
+      if (dayEvents.length > 0) {
+        const eventsWrap = document.createElement("div");
+        eventsWrap.className = "cal-events-list";
+
+        // Display up to 2 pills per cell
+        const displayEvents = dayEvents.slice(0, 2);
+        for (const ev of displayEvents) {
+          const pill = document.createElement("div");
+          pill.className = `cal-event-pill ${ev.category === "lds" ? "pill-lds" : "pill-hindu"}`;
+          pill.title = `${ev.name} (${ev.category.toUpperCase()})`;
+          pill.innerHTML = `<span>${ev.icon}</span><span class="event-title">${escapeHtml(ev.name)}</span>`;
+          eventsWrap.appendChild(pill);
+        }
+
+        if (dayEvents.length > 2) {
+          const morePill = document.createElement("div");
+          morePill.className = "cal-event-pill";
+          morePill.style.fontSize = "0.65rem";
+          morePill.style.opacity = "0.8";
+          morePill.textContent = `+${dayEvents.length - 2} more`;
+          eventsWrap.appendChild(morePill);
+        }
+
+        cell.appendChild(eventsWrap);
+      }
+
+      // Click to select day and view full details
+      cell.addEventListener("click", () => {
+        selectFullCalDate(dateStr);
+      });
+
+      // Double click on Sunday loads agenda directly
+      if (isSunday) {
+        cell.addEventListener("dblclick", () => {
+          loadAgenda(dateStr);
+          closeFullCalendarModal();
+          showToast(`Loaded Sunday ${formatDisplayDate(dateStr)}`);
+        });
+      }
+
+      calDaysGrid.appendChild(cell);
+    }
+  }
+
+  function selectFullCalDate(dateStr) {
+    fullCalSelectedDate = dateStr;
+
+    // Update cell highlights
+    calDaysGrid.querySelectorAll(".cal-day-cell").forEach((c) => {
+      c.classList.toggle("is-selected", c.dataset.date === dateStr);
+    });
+
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dateObj = new Date(y, m - 1, d, 12, 0, 0);
+    const isSunday = dateObj.getDay() === 0;
+
+    // Display formatted title
+    calDetailsDate.textContent = dateObj.toLocaleDateString("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    if (isSunday) {
+      const weekNum = Math.min(5, Math.ceil(d / 7));
+      const rotationRules = {
+        1: "1st Sunday (Fast & Testimony)",
+        2: "2nd Sunday (Elders Quorum)",
+        3: "3rd Sunday (Relief Society)",
+        4: "4th Sunday (Elders Quorum)",
+        5: "5th Sunday (Bishopric)",
+      };
+      calDetailsBadge.textContent = rotationRules[weekNum] || `${weekNum}th Sunday`;
+      calDetailsBadge.className = "pill-badge pill-amber";
+      calDetailsBadge.style.display = "inline-flex";
+
+      btnCalJumpAgenda.innerHTML = "<span>⛪ Open This Sunday's Agenda</span>";
+      btnCalJumpAgenda.style.display = "inline-flex";
+      btnCalJumpAgenda.onclick = () => {
+        loadAgenda(dateStr);
+        closeFullCalendarModal();
+        showToast(`Loaded ${formatDisplayDate(dateStr)}`);
+      };
+    } else {
+      calDetailsBadge.style.display = "none";
+      // Find Sunday of this week (previous Sunday)
+      const prevSunday = new Date(dateObj);
+      prevSunday.setDate(dateObj.getDate() - dateObj.getDay());
+      const psy = prevSunday.getFullYear();
+      const psm = String(prevSunday.getMonth() + 1).padStart(2, "0");
+      const psd = String(prevSunday.getDate()).padStart(2, "0");
+      const sundayStr = `${psy}-${psm}-${psd}`;
+
+      btnCalJumpAgenda.innerHTML = `<span>➡️ Go to Sunday (${formatDisplayDate(sundayStr)})</span>`;
+      btnCalJumpAgenda.style.display = "inline-flex";
+      btnCalJumpAgenda.onclick = () => {
+        loadAgenda(sundayStr);
+        closeFullCalendarModal();
+        showToast(`Loaded Sunday ${formatDisplayDate(sundayStr)}`);
+      };
+    }
+
+    // List all holidays and celebrations for this date
+    calDetailsEventsList.innerHTML = "";
+    const holidays = fullCalHolidays[y] || [];
+    const showLds = calToggleLds ? calToggleLds.checked : true;
+    const showIndian = calToggleIndian ? calToggleIndian.checked : true;
+
+    const dayHolidays = holidays.filter((h) => {
+      if (h.date !== dateStr) return false;
+      if (h.category === "lds" && !showLds) return false;
+      if (h.category === "indian" && !showIndian) return false;
+      return true;
+    });
+
+    if (dayHolidays.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "cal-empty-hint";
+      empty.textContent = isSunday
+        ? "Regular ward Sunday meeting. Click 'Open This Sunday's Agenda' above to view and plan assignments."
+        : "No special celebrations on this date.";
+      calDetailsEventsList.appendChild(empty);
+    } else {
+      for (const ev of dayHolidays) {
+        const item = document.createElement("div");
+        item.className = "cal-event-detail-item";
+
+        const icon = document.createElement("span");
+        icon.className = "cal-event-icon";
+        icon.textContent = ev.icon;
+        item.appendChild(icon);
+
+        const info = document.createElement("div");
+        info.className = "cal-event-info";
+
+        const topRow = document.createElement("div");
+        topRow.style.display = "flex";
+        topRow.style.alignItems = "center";
+        topRow.style.gap = "6px";
+
+        const name = document.createElement("span");
+        name.className = "cal-event-name";
+        name.textContent = ev.name;
+        topRow.appendChild(name);
+
+        const catBadge = document.createElement("span");
+        catBadge.className = `pill-badge ${ev.category === "lds" ? "pill-lds" : "pill-hindu"}`;
+        catBadge.style.fontSize = "0.7rem";
+        catBadge.textContent = ev.category === "lds" ? "⛪ LDS" : "🪔 Indian / Hindu";
+        topRow.appendChild(catBadge);
+
+        info.appendChild(topRow);
+
+        if (ev.description) {
+          const desc = document.createElement("span");
+          desc.className = "cal-event-desc";
+          desc.textContent = ev.description;
+          info.appendChild(desc);
+        }
+
+        item.appendChild(info);
+        calDetailsEventsList.appendChild(item);
+      }
     }
   }
 

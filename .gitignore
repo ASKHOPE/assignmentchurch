@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# SQLite Database & Runtime WAL files
+*.db
+*.db-wal
+*.db-shm
+
+# Environment & Local secrets
+.env
+.env.local
+.env.*.local
+
+# OS Generated
+.DS_Store
+Thumbs.db
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
