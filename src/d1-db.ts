@@ -8,47 +8,53 @@ let schemaInitialized = false;
 export async function ensureD1Schema(db: D1Database): Promise<void> {
   if (schemaInitialized) return;
 
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS agendas (
-      date TEXT PRIMARY KEY,
-      week_label TEXT,
-      meeting_type TEXT DEFAULT 'standard',
-      opening_prayer_role TEXT DEFAULT 'Brother',
-      opening_prayer_name TEXT DEFAULT '',
-      talk1_org TEXT DEFAULT 'Bishopric',
-      talk1_title TEXT DEFAULT '',
-      talk1_speaker TEXT DEFAULT '',
-      talk2_org TEXT DEFAULT 'Elders Quorum',
-      talk2_title TEXT DEFAULT '',
-      talk2_url TEXT DEFAULT '',
-      talk2_speaker TEXT DEFAULT '',
-      talk3_org TEXT DEFAULT 'Member',
-      talk3_title TEXT DEFAULT '',
-      talk3_url TEXT DEFAULT '',
-      talk3_speaker TEXT DEFAULT '',
-      closing_prayer_role TEXT DEFAULT 'Sister',
-      closing_prayer_name TEXT DEFAULT '',
-      hymn_opening TEXT DEFAULT '',
-      hymn_sacrament TEXT DEFAULT '',
-      hymn_interlude TEXT DEFAULT '',
-      hymn_closing TEXT DEFAULT '',
-      classes_json TEXT DEFAULT '{}',
-      conference_title TEXT DEFAULT '',
-      conference_details TEXT DEFAULT '',
-      conference_url TEXT DEFAULT '',
-      notes TEXT DEFAULT '',
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    );
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS agendas (
+        date TEXT PRIMARY KEY,
+        week_label TEXT,
+        meeting_type TEXT DEFAULT 'standard',
+        opening_prayer_role TEXT DEFAULT 'Brother',
+        opening_prayer_name TEXT DEFAULT '',
+        talk1_org TEXT DEFAULT 'Bishopric',
+        talk1_title TEXT DEFAULT '',
+        talk1_speaker TEXT DEFAULT '',
+        talk2_org TEXT DEFAULT 'Elders Quorum',
+        talk2_title TEXT DEFAULT '',
+        talk2_url TEXT DEFAULT '',
+        talk2_speaker TEXT DEFAULT '',
+        talk3_org TEXT DEFAULT 'Member',
+        talk3_title TEXT DEFAULT '',
+        talk3_url TEXT DEFAULT '',
+        talk3_speaker TEXT DEFAULT '',
+        closing_prayer_role TEXT DEFAULT 'Sister',
+        closing_prayer_name TEXT DEFAULT '',
+        hymn_opening TEXT DEFAULT '',
+        hymn_sacrament TEXT DEFAULT '',
+        hymn_interlude TEXT DEFAULT '',
+        hymn_closing TEXT DEFAULT '',
+        classes_json TEXT DEFAULT '{}',
+        conference_title TEXT DEFAULT '',
+        conference_details TEXT DEFAULT '',
+        conference_url TEXT DEFAULT '',
+        notes TEXT DEFAULT '',
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
 
-    CREATE TABLE IF NOT EXISTS autocomplete_history (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      category TEXT NOT NULL,
-      value TEXT NOT NULL UNIQUE,
-      last_used TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS autocomplete_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category TEXT NOT NULL,
+        value TEXT NOT NULL UNIQUE,
+        last_used TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
 
-  schemaInitialized = true;
+    schemaInitialized = true;
+  } catch (err) {
+    console.warn("D1 schema initialization warning:", err);
+  }
 }
 
 export async function getAgendaByDateD1(db: D1Database, date: string): Promise<AgendaRecord> {
