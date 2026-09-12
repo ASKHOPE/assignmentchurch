@@ -438,14 +438,12 @@ async function loadTalks() {
           </div>
         `;
       }
+      talksGrid.className = "conference-groups-wrap";
       talksGrid.innerHTML = html;
     } else {
       // Flat grid sorted by name/speaker
-      talksGrid.innerHTML = `
-        <div class="cards-grid">
-          ${talks.map(renderTalkCard).join("")}
-        </div>
-      `;
+      talksGrid.className = "cards-grid";
+      talksGrid.innerHTML = talks.map(renderTalkCard).join("");
     }
     applyViewMode(currentViewMode);
   } catch (err) {
@@ -670,11 +668,11 @@ async function loadCfm() {
           <div class="cfm-banner-tag">★ SCHEDULED FOR ACTIVE SUNDAY (${escapeHtml(sunDisplay)})</div>
           <h3 class="cfm-banner-title">📅 ${escapeHtml(matchedLesson.date_range)}: “${escapeHtml(matchedLesson.title)}”</h3>
           ${matchedLesson.scriptures ? `<p class="cfm-banner-scriptures">📜 <strong>Reading:</strong> ${escapeHtml(matchedLesson.scriptures)}</p>` : ''}
-          <p class="cfm-banner-sub">⚡ Sunday School: Combined Adults & Combined Youth both learn from Come, Follow Me!</p>
+          <p class="cfm-banner-sub">⚡ Sunday School & Primary: Combined Adults, Combined Youth & Primary all learn from Come, Follow Me!</p>
         </div>
         <div class="cfm-banner-right">
           <button class="btn btn-apply-all-banner" onclick="applyCfmToBothSundaySchools('${escapeJs(matchedLesson.date_range)}', '${escapeJs(matchedLesson.title)}', '${escapeJs(matchedLesson.scriptures)}', '${escapeJs(matchedLesson.url)}')">
-            ⚡ Apply to ALL (Adult & Youth Sunday School)
+            ⚡ Apply to ALL (Adults, Youth & Primary)
           </button>
           <a href="${matchedLesson.url}" target="_blank" rel="noopener" class="btn-banner-church-link">
             Open on Church.org ↗
@@ -707,10 +705,10 @@ async function loadCfm() {
             </div>
           </div>
           <div class="action-btn-row">
-            <button class="btn-assign btn-highlight-assign" onclick="applyCfmToBothSundaySchools('${escapeJs(c.date_range)}', '${escapeJs(c.title)}', '${escapeJs(c.scriptures)}', '${escapeJs(c.url)}')">⚡ Apply to All</button>
+            <button class="btn-assign btn-highlight-assign btn-cfm-all" onclick="applyCfmToBothSundaySchools('${escapeJs(c.date_range)}', '${escapeJs(c.title)}', '${escapeJs(c.scriptures)}', '${escapeJs(c.url)}')">⚡ Apply to All (Adults, Youth & Primary)</button>
             <button class="btn-assign" onclick="assignCfm('sunday_school', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Adult Sunday School</button>
             <button class="btn-assign" onclick="assignCfm('sunday_school_youth', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Youth Sunday School</button>
-            <button class="btn-assign" onclick="assignCfm('primary', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Primary</button>
+            <button class="btn-assign btn-cfm-primary" onclick="assignCfm('primary', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Primary</button>
           </div>
         </div>
       `;
@@ -832,11 +830,11 @@ async function loadFsy() {
           </div>
           <div class="action-btn-row">
             ${l.organization === 'young_men' ? `
-              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('young_men', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Men</button>
+              <button class="btn-assign btn-highlight-assign btn-fsy-single" onclick="assignFsy('young_men', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Men</button>
             ` : l.organization === 'young_women' ? `
-              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('young_women', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Women</button>
+              <button class="btn-assign btn-highlight-assign btn-fsy-single" onclick="assignFsy('young_women', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Women</button>
             ` : `
-              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('both', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">⚡ Assign Both (YM & YW)</button>
+              <button class="btn-assign btn-highlight-assign btn-fsy-both" onclick="assignFsy('both', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">⚡ Assign Both (YM & YW)</button>
               <button class="btn-assign" onclick="assignFsy('young_men', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Young Men</button>
               <button class="btn-assign" onclick="assignFsy('young_women', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Young Women</button>
             `}
