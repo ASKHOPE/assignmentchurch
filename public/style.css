@@ -469,6 +469,51 @@ body {
   background-color: var(--bg-card-secondary);
 }
 
+.btn-study-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-study-link:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-browse-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a5b4fc !important;
+  background: rgba(165, 180, 252, 0.12);
+  border: 1px solid rgba(165, 180, 252, 0.25);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn-browse-pill:hover {
+  background: rgba(165, 180, 252, 0.25);
+  color: #ffffff !important;
+}
+
 .icon-btn {
   padding: 8px;
   width: 38px;

@@ -146,8 +146,25 @@
     initTheme();
     setupEventListeners();
     setupMobileTabs();
+
+    // Check if URL specifies date (e.g. returning from Study Planner)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramDate = urlParams.get("date");
+    if (paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)) {
+      currentDate = paramDate;
+    }
+
     await loadAgenda(currentDate);
     refreshAutocompleteSuggestions();
+
+    // Register PWA Service Worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch((err) => {
+          console.log("ServiceWorker registration note:", err);
+        });
+      });
+    }
   }
 
   /* --------------------------------------------------------------------------
@@ -206,6 +223,14 @@
     updateStudyLink("talk3-url", "talk3-link-btn");
     updateStudyLink("ss-url", "ss-link-btn");
     updateStudyLink("conf-url", "conf-link-btn");
+
+    // Update links to Study & Curriculum planner
+    const btnNavStudy = document.getElementById("btn-nav-study");
+    if (btnNavStudy) btnNavStudy.href = `/study.html?date=${agenda.date}`;
+    const btnCurateTalks = document.getElementById("btn-curate-talks-header");
+    if (btnCurateTalks) btnCurateTalks.href = `/study.html?tab=talks&date=${agenda.date}`;
+    const btnCurateHymns = document.getElementById("btn-curate-hymns-header");
+    if (btnCurateHymns) btnCurateHymns.href = `/study.html?tab=hymns&date=${agenda.date}`;
 
     // Update Talks Order Reference Card active status
     highlightActiveSundayRule(agenda.date);

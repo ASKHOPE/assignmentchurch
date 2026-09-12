@@ -80,6 +80,9 @@ export function formatFullAgendaWhatsApp(agenda: AgendaRecord): string {
       const org = agenda.talk1_org ? ` (${agenda.talk1_org})` : "";
       const speaker = agenda.talk1_speaker ? ` - ${agenda.talk1_speaker}` : "";
       lines.push(`🗣️ *1st Talk${org}:* ${agenda.talk1_title || "Talk"}${speaker}`);
+      if (agenda.talk1_url) {
+        lines.push(`🔗 ${agenda.talk1_url}`);
+      }
     }
 
     // 2nd Talk
@@ -182,6 +185,7 @@ export function formatSacramentWhatsApp(agenda: AgendaRecord): string {
     if (agenda.talk1_title || agenda.talk1_speaker) {
       const org = agenda.talk1_org ? ` (${agenda.talk1_org})` : "";
       lines.push(`🗣️ *1st Talk${org}:* ${agenda.talk1_title} (${agenda.talk1_speaker})`);
+      if (agenda.talk1_url) lines.push(`🔗 ${agenda.talk1_url}`);
     }
 
     if (agenda.talk2_title || agenda.talk2_speaker) {
