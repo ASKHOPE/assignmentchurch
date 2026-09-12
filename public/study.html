@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=2">
+  <link rel="stylesheet" href="/style.css?v=3">
 </head>
 <body class="study-planner-body">
   <div class="app-shell">
@@ -114,7 +114,8 @@
             <span class="subgroup-icon">📖</span>
             <span class="subgroup-title">Second Hour Classes & Quorum Lessons</span>
           </div>
-          <div class="curated-grid classes-grid-6">
+          <!-- Row 1: Come, Follow Me (Combined Adults, Combined Youth, Primary) -->
+          <div class="curated-grid classes-grid-3" style="margin-bottom: 10px;">
             <!-- 1. CFM Combined Adults -->
             <div class="curated-pill" id="pillCfmAdults">
               <div class="pill-header-row">
@@ -133,7 +134,19 @@
               <span class="pill-val" id="valCfmYouth">No lesson set</span>
             </div>
 
-            <!-- 3. GC Elders Quorum -->
+            <!-- 3. CFM Primary -->
+            <div class="curated-pill" id="pillPrimary">
+              <div class="pill-header-row">
+                <span class="pill-label">Come, Follow Me (Primary)</span>
+                <span class="pill-tag-mini">Primary</span>
+              </div>
+              <span class="pill-val" id="valPrimary">No lesson set</span>
+            </div>
+          </div>
+
+          <!-- Row 2 & 3: Quorums & Classes (2 Columns) -->
+          <div class="curated-grid classes-grid-pairs">
+            <!-- 4. GC Elders Quorum -->
             <div class="curated-pill" id="pillEq">
               <div class="pill-header-row">
                 <span class="pill-label">General Conference (Elders Quorum)</span>
@@ -142,7 +155,7 @@
               <span class="pill-val" id="valEq">No talk set</span>
             </div>
 
-            <!-- 4. GC Relief Society -->
+            <!-- 5. GC Relief Society -->
             <div class="curated-pill" id="pillRs">
               <div class="pill-header-row">
                 <span class="pill-label">General Conference (Relief Society)</span>
@@ -151,7 +164,7 @@
               <span class="pill-val" id="valRs">No talk set</span>
             </div>
 
-            <!-- 5. FSY Young Men -->
+            <!-- 6. FSY Young Men -->
             <div class="curated-pill" id="pillYm">
               <div class="pill-header-row">
                 <span class="pill-label">FSY Magazine (Young Men)</span>
@@ -160,7 +173,7 @@
               <span class="pill-val" id="valYm">No lesson set</span>
             </div>
 
-            <!-- 6. FSY Young Women -->
+            <!-- 7. FSY Young Women -->
             <div class="curated-pill" id="pillYw">
               <div class="pill-header-row">
                 <span class="pill-label">FSY Magazine (Young Women)</span>
@@ -410,6 +423,6 @@
   <!-- Toast Notifications -->
   <div id="studyToast" class="study-toast"></div>
 
-  <script src="/study.js?v=2"></script>
+  <script src="/study.js?v=3"></script>
 </body>
 </html>

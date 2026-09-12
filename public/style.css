@@ -2038,13 +2038,33 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.classes-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.classes-grid-pairs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
 .classes-grid-6 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
+@media (max-width: 900px) {
+  .classes-grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
+  .classes-grid-3,
+  .classes-grid-pairs,
   .classes-grid-6 {
     grid-template-columns: 1fr;
   }

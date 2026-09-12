@@ -65,6 +65,7 @@ const valTalk3 = document.getElementById("valTalk3");
 // Overview Pills: Second Hour Classes & Quorums
 const valCfmAdults = document.getElementById("valCfmAdults");
 const valCfmYouth = document.getElementById("valCfmYouth");
+const valPrimary = document.getElementById("valPrimary");
 const valEq = document.getElementById("valEq");
 const valRs = document.getElementById("valRs");
 const valYm = document.getElementById("valYm");
@@ -231,6 +232,7 @@ function renderOverviewCard() {
   const cJson = currentAgenda.classes_json || {};
   renderPill(valCfmAdults, cJson.sunday_school?.topic, cJson.sunday_school?.url, "No lesson set");
   renderPill(valCfmYouth, cJson.sunday_school_youth?.topic, cJson.sunday_school_youth?.url, "No lesson set");
+  renderPill(valPrimary, cJson.primary?.topic, cJson.primary?.url, "No lesson set");
   renderPill(valEq, cJson.elders_quorum?.topic, cJson.elders_quorum?.url, "No talk set");
   renderPill(valRs, cJson.relief_society?.topic, cJson.relief_society?.url, "No talk set");
   renderPill(valYm, cJson.young_men?.topic, cJson.young_men?.url, "No lesson set");
