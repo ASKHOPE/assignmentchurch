@@ -10,6 +10,9 @@ import {
   getAutocompleteSuggestionsD1,
   exportAllDataD1,
   importAllDataD1,
+  searchHymnsD1,
+  searchConferenceTalksD1,
+  getComeFollowMeD1,
 } from "./d1-db";
 import {
   formatFullAgendaWhatsApp,
@@ -20,6 +23,10 @@ import {
 } from "./whatsapp-formatter";
 import { getHolidaysForYear } from "./holidays";
 import { createDefaultAgenda } from "./agenda-utils";
+
+import hymnsFallback from "../data/hymns.json";
+import talksFallback from "../data/conference-talks.json";
+import cfmFallback from "../data/come-follow-me.json";
 
 export interface Env {
   ASSETS: Fetcher;
@@ -66,7 +73,7 @@ export default {
         // PUT /api/agenda/:date
         if (request.method === "PUT" && agendaMatch) {
           const date = agendaMatch[1];
-          const body = await request.json();
+          const body = (await request.json()) as any;
           let saved;
           if (env.DB) {
             saved = await saveAgendaD1(env.DB, { ...body, date });
@@ -104,6 +111,72 @@ export default {
             suggestions = ["Brother", "Sister", "Bishopric", "Sahitya", "Elders Quorum", "Relief Society"];
           }
           return Response.json({ success: true, suggestions }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/hymns
+        if (request.method === "GET" && path === "/api/hymns") {
+          const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+          const book = url.searchParams.get("book") || undefined;
+          const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+          let hymns = [];
+          if (env.DB) {
+            hymns = await searchHymnsD1(env.DB, q, book, limit);
+          } else {
+            hymns = (hymnsFallback as any[]).filter(h => {
+              if (book && book !== "all" && h.book !== book) return false;
+              if (q) {
+                if (String(h.number).includes(q) || h.title.toLowerCase().includes(q)) return true;
+                return false;
+              }
+              return true;
+            }).slice(0, limit);
+          }
+          return Response.json({ success: true, count: hymns.length, hymns }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/talks
+        if (request.method === "GET" && path === "/api/talks") {
+          const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+          const speaker = (url.searchParams.get("speaker") || "").toLowerCase().trim();
+          const yearStr = url.searchParams.get("year");
+          const year = yearStr ? parseInt(yearStr, 10) : undefined;
+          const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+          let talks = [];
+          if (env.DB) {
+            talks = await searchConferenceTalksD1(env.DB, q, speaker, year, limit);
+          } else {
+            talks = (talksFallback as any[]).filter(t => {
+              if (year && t.year !== year) return false;
+              if (speaker && !t.speaker.toLowerCase().includes(speaker)) return false;
+              if (q && !t.title.toLowerCase().includes(q) && !t.speaker.toLowerCase().includes(q)) return false;
+              return true;
+            }).slice(0, limit);
+          }
+          return Response.json({ success: true, count: talks.length, talks }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/come-follow-me
+        if (request.method === "GET" && path === "/api/come-follow-me") {
+          const yearStr = url.searchParams.get("year");
+          const year = yearStr ? parseInt(yearStr, 10) : undefined;
+          const q = (url.searchParams.get("q") || "").toLowerCase().trim();
+          let lessons = [];
+          if (env.DB) {
+            lessons = await getComeFollowMeD1(env.DB, year, q);
+          } else {
+            lessons = (cfmFallback as any[]).filter(c => {
+              if (year && c.year !== year) return false;
+              if (q && !c.title.toLowerCase().includes(q) && !c.scriptures.toLowerCase().includes(q)) return false;
+              return true;
+            });
+          }
+          return Response.json({ success: true, count: lessons.length, lessons }, {
             headers: { "Access-Control-Allow-Origin": "*" },
           });
         }

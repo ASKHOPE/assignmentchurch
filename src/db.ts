@@ -74,6 +74,45 @@ export function initDb(dbPath: string = "agenda.db"): Database {
     );
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS hymns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      book TEXT NOT NULL,
+      number INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      url TEXT NOT NULL,
+      UNIQUE(book, number)
+    );
+    CREATE INDEX IF NOT EXISTS idx_hymns_search ON hymns(book, number, title);
+
+    CREATE TABLE IF NOT EXISTS conference_talks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL,
+      month INTEGER NOT NULL,
+      conference_name TEXT NOT NULL,
+      session TEXT NOT NULL,
+      title TEXT NOT NULL,
+      speaker TEXT NOT NULL,
+      url TEXT NOT NULL,
+      UNIQUE(year, month, url)
+    );
+    CREATE INDEX IF NOT EXISTS idx_talks_speaker ON conference_talks(speaker);
+    CREATE INDEX IF NOT EXISTS idx_talks_year ON conference_talks(year, month);
+
+    CREATE TABLE IF NOT EXISTS come_follow_me (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL,
+      book_title TEXT NOT NULL,
+      week_number INTEGER,
+      date_range TEXT,
+      title TEXT NOT NULL,
+      scriptures TEXT,
+      url TEXT NOT NULL,
+      UNIQUE(year, url)
+    );
+    CREATE INDEX IF NOT EXISTS idx_cfm_year ON come_follow_me(year);
+  `);
+
   // Seed initial data from image if empty
   const countRow = db.query("SELECT COUNT(*) as count FROM agendas").get() as { count: number };
   if (countRow.count === 0) {
@@ -423,4 +462,110 @@ export function importAllData(db: Database, data: any): void {
       }
     }
   }
+}
+
+export interface HymnRecord {
+  id?: number;
+  book: string;
+  number: number;
+  title: string;
+  url: string;
+}
+
+export interface ConferenceTalkRecord {
+  id?: number;
+  year: number;
+  month: number;
+  conference_name: string;
+  session: string;
+  speaker: string;
+  title: string;
+  url: string;
+}
+
+export interface ComeFollowMeRecord {
+  id?: number;
+  year: number;
+  book_title: string;
+  week_number: number;
+  date_range: string;
+  title: string;
+  scriptures: string;
+  url: string;
+}
+
+export function searchHymns(db: Database, query?: string, book?: string, limit = 50): HymnRecord[] {
+  let sql = "SELECT id, book, number, title, url FROM hymns WHERE 1=1";
+  const params: any[] = [];
+
+  if (book && book !== "all") {
+    sql += " AND book = ?";
+    params.push(book);
+  }
+
+  if (query && query.trim()) {
+    const q = query.trim();
+    // Check if query is a number
+    if (/^\d+$/.test(q)) {
+      sql += " AND number = ?";
+      params.push(parseInt(q, 10));
+    } else {
+      sql += " AND (title LIKE ? OR CAST(number AS TEXT) LIKE ?)";
+      params.push(`%${q}%`, `%${q}%`);
+    }
+  }
+
+  sql += " ORDER BY book, number ASC LIMIT ?";
+  params.push(limit);
+
+  return db.query(sql).all(...params) as HymnRecord[];
+}
+
+export function searchConferenceTalks(
+  db: Database,
+  query?: string,
+  speaker?: string,
+  year?: number,
+  limit = 50
+): ConferenceTalkRecord[] {
+  let sql = "SELECT id, year, month, conference_name, session, speaker, title, url FROM conference_talks WHERE 1=1";
+  const params: any[] = [];
+
+  if (year) {
+    sql += " AND year = ?";
+    params.push(year);
+  }
+
+  if (speaker && speaker.trim()) {
+    sql += " AND (speaker LIKE ? OR title LIKE ?)";
+    params.push(`%${speaker.trim()}%`, `%${speaker.trim()}%`);
+  }
+
+  if (query && query.trim()) {
+    sql += " AND (title LIKE ? OR speaker LIKE ?)";
+    params.push(`%${query.trim()}%`, `%${query.trim()}%`);
+  }
+
+  sql += " ORDER BY year DESC, month DESC, id ASC LIMIT ?";
+  params.push(limit);
+
+  return db.query(sql).all(...params) as ConferenceTalkRecord[];
+}
+
+export function getComeFollowMe(db: Database, year?: number, query?: string): ComeFollowMeRecord[] {
+  let sql = "SELECT id, year, book_title, week_number, date_range, title, scriptures, url FROM come_follow_me WHERE 1=1";
+  const params: any[] = [];
+
+  if (year) {
+    sql += " AND year = ?";
+    params.push(year);
+  }
+
+  if (query && query.trim()) {
+    sql += " AND (title LIKE ? OR scriptures LIKE ? OR date_range LIKE ?)";
+    params.push(`%${query.trim()}%`, `%${query.trim()}%`, `%${query.trim()}%`);
+  }
+
+  sql += " ORDER BY year DESC, week_number ASC";
+  return db.query(sql).all(...params) as ComeFollowMeRecord[];
 }

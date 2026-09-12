@@ -39,6 +39,43 @@ CREATE TABLE IF NOT EXISTS autocomplete_history (
   last_used TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS hymns (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  book TEXT NOT NULL,
+  number INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL,
+  UNIQUE(book, number)
+);
+CREATE INDEX IF NOT EXISTS idx_hymns_search ON hymns(book, number, title);
+
+CREATE TABLE IF NOT EXISTS conference_talks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  conference_name TEXT NOT NULL,
+  session TEXT NOT NULL,
+  title TEXT NOT NULL,
+  speaker TEXT NOT NULL,
+  url TEXT NOT NULL,
+  UNIQUE(year, month, url)
+);
+CREATE INDEX IF NOT EXISTS idx_talks_speaker ON conference_talks(speaker);
+CREATE INDEX IF NOT EXISTS idx_talks_year ON conference_talks(year, month);
+
+CREATE TABLE IF NOT EXISTS come_follow_me (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  year INTEGER NOT NULL,
+  book_title TEXT NOT NULL,
+  week_number INTEGER,
+  date_range TEXT,
+  title TEXT NOT NULL,
+  scriptures TEXT,
+  url TEXT NOT NULL,
+  UNIQUE(year, url)
+);
+CREATE INDEX IF NOT EXISTS idx_cfm_year ON come_follow_me(year);
+
 -- Seed initial agenda for September 13, 2026 if not exists
 INSERT OR IGNORE INTO agendas (
   date, week_label, meeting_type, opening_prayer_role, opening_prayer_name,

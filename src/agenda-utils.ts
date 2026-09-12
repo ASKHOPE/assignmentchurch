@@ -23,6 +23,7 @@ export interface AgendaRecord {
   opening_prayer_name: string;
   talk1_org: string; // "Bishopric" | "Stake High Councilor" | "Youth - Young Men" | "Youth - Young Women" | "Custom"
   talk1_title: string;
+  talk1_url?: string;
   talk1_speaker: string;
   talk2_org: string; // "Elders Quorum" | "Relief Society" | "Youth - Young Men" | "Youth - Young Women" | "Stake High Councilor" | "Custom"
   talk2_title: string;
@@ -35,9 +36,17 @@ export interface AgendaRecord {
   closing_prayer_role: string; // "Brother" | "Sister"
   closing_prayer_name: string;
   hymn_opening: string;
+  hymn_opening_url?: string;
   hymn_sacrament: string;
+  hymn_sacrament_url?: string;
   hymn_interlude: string;
+  hymn_interlude_url?: string;
   hymn_closing: string;
+  hymn_closing_url?: string;
+  cfm_week?: number;
+  cfm_title?: string;
+  cfm_scriptures?: string;
+  cfm_url?: string;
   classes_json: ClassesStructure;
   conference_title?: string;
   conference_details?: string;

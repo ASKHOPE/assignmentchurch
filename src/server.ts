@@ -6,7 +6,10 @@ import {
   getAllSavedSundays, 
   getAutocompleteSuggestions, 
   exportAllData, 
-  importAllData 
+  importAllData,
+  searchHymns,
+  searchConferenceTalks,
+  getComeFollowMe
 } from "./db";
 import { 
   formatFullAgendaWhatsApp, 
@@ -60,7 +63,7 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             if (!date) {
               return Response.json({ success: false, error: "Date parameter required" }, { status: 400 });
             }
-            const body = await req.json();
+            const body = (await req.json()) as any;
             const saved = saveAgenda(db, { ...body, date });
             return Response.json({ success: true, data: saved }, {
               headers: { "Access-Control-Allow-Origin": "*" }
@@ -102,9 +105,44 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             });
           }
 
+          // GET /api/hymns
+          if (req.method === "GET" && path === "/api/hymns") {
+            const q = url.searchParams.get("q") || undefined;
+            const book = url.searchParams.get("book") || undefined;
+            const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+            const hymns = searchHymns(db, q, book, limit);
+            return Response.json({ success: true, count: hymns.length, hymns }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/talks
+          if (req.method === "GET" && path === "/api/talks") {
+            const q = url.searchParams.get("q") || undefined;
+            const speaker = url.searchParams.get("speaker") || undefined;
+            const yearStr = url.searchParams.get("year");
+            const year = yearStr ? parseInt(yearStr, 10) : undefined;
+            const limit = parseInt(url.searchParams.get("limit") || "50", 10);
+            const talks = searchConferenceTalks(db, q, speaker, year, limit);
+            return Response.json({ success: true, count: talks.length, talks }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/come-follow-me
+          if (req.method === "GET" && path === "/api/come-follow-me") {
+            const yearStr = url.searchParams.get("year");
+            const year = yearStr ? parseInt(yearStr, 10) : undefined;
+            const q = url.searchParams.get("q") || undefined;
+            const lessons = getComeFollowMe(db, year, q);
+            return Response.json({ success: true, count: lessons.length, lessons }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
           // POST /api/share/whatsapp
           if (req.method === "POST" && path === "/api/share/whatsapp") {
-            const body = await req.json();
+            const body = (await req.json()) as any;
             const date = body.date;
             const preset = body.preset || "full";
             const agenda = getAgendaByDate(db, date);
