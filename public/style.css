@@ -2252,23 +2252,15 @@ body {
   cursor: pointer;
 }
 
-/* Results Bar & View Mode Toggle */
-.results-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+.filter-controls .view-mode-toggle {
+  margin-left: auto;
 }
 
 .results-stats {
   font-size: 0.85rem;
   color: #94a3b8;
   font-weight: 500;
-  margin-bottom: 0;
+  margin-bottom: 14px;
 }
 
 .view-mode-toggle {
@@ -2279,6 +2271,7 @@ body {
   border-radius: 8px;
   padding: 3px;
   gap: 3px;
+  flex-shrink: 0;
 }
 
 .btn-view-toggle {
