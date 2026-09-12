@@ -1,0 +1,14 @@
+{
+  "name": "assignmentschurch",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Ultra-fast mobile-first church agenda web application with Bun, SQLite, and WhatsApp curation",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

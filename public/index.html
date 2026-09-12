@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ward Sunday Agenda & Assignment Planner</title>
+  <meta name="description" content="Ultra-fast mobile-first Sunday meeting agenda and assignment manager with 1-tap WhatsApp sharing.">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+  <!-- Top Application Bar -->
+  <header class="app-header" id="app-header">
+    <div class="header-container">
+      <div class="brand-cluster">
+        <div class="brand-logo" aria-hidden="true">⛪</div>
+        <div class="brand-text">
+          <h1 class="brand-title">Ward Agenda</h1>
+          <span class="sync-badge" id="sync-badge" title="Auto-saving enabled">
+            <span class="sync-dot"></span>
+            <span class="sync-text" id="sync-text">Saved</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Date Navigator -->
+      <nav class="date-navigator" aria-label="Sunday date navigation">
+        <button id="btn-prev-sunday" class="nav-btn icon-btn" title="Previous Sunday (7 days ago)" aria-label="Previous Sunday">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+
+        <div class="date-picker-wrap" id="date-picker-wrap">
+          <button id="btn-open-calendar" class="btn-calendar-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" title="Open Calendar & Sunday Selector">
+            <span class="calendar-icon" aria-hidden="true">📅</span>
+            <div class="date-display-badge">
+              <span class="date-day-label" id="date-display-text">13 September 2026</span>
+              <span class="week-pill" id="week-pill">1st Sunday</span>
+            </div>
+            <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          
+          <input type="date" id="date-picker" class="native-date-input" aria-label="Select date" value="2026-09-13">
+
+          <!-- Sundays Calendar Quick-Selector Popover -->
+          <div class="calendar-popover" id="calendar-popover" aria-hidden="true">
+            <div class="popover-header">
+              <span class="popover-title">Select Sunday</span>
+              <button id="btn-close-popover" class="btn-popover-close" type="button" aria-label="Close">×</button>
+            </div>
+
+            <div class="month-selector-bar">
+              <button id="btn-prev-month" class="nav-btn-mini" type="button" title="Previous Month">‹</button>
+              <span id="popover-month-label" class="popover-month-label">September 2026</span>
+              <button id="btn-next-month" class="nav-btn-mini" type="button" title="Next Month">›</button>
+            </div>
+
+            <div class="sundays-list" id="popover-sundays-list">
+              <!-- Dynamically populated with Sundays of the month -->
+            </div>
+
+            <div class="popover-footer">
+              <button id="btn-trigger-native-picker" class="btn btn-secondary btn-sm full-width" type="button">
+                <span>🗓️ Open Full Date Calendar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-next-sunday" class="nav-btn icon-btn" title="Next Sunday (in 7 days)" aria-label="Next Sunday">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </nav>
+
+      <!-- Action Cluster -->
+      <div class="actions-cluster">
+        <button id="btn-open-whatsapp" class="btn btn-whatsapp" title="Curate and Share to WhatsApp">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z"/></svg>
+          <span>WhatsApp</span>
+        </button>
+
+        <button id="btn-print" class="btn btn-secondary icon-btn-labeled" title="Print 1-page Bulletin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          <span class="desktop-only">Print</span>
+        </button>
+
+        <button id="btn-theme-toggle" class="btn btn-ghost icon-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <span id="theme-icon">🌙</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile View Tabs -->
+    <div class="mobile-tabs" id="mobile-tabs">
+      <button class="tab-btn active" data-tab="tab-sacrament">Sacrament & Hymns</button>
+      <button class="tab-btn" data-tab="tab-classes">2nd Hour Classes</button>
+      <button class="tab-btn" data-tab="tab-order">Talks Order</button>
+    </div>
+  </header>
+
+  <!-- Main Content Dashboard -->
+  <main class="main-container" id="main-content">
+    
+    <!-- Meeting Type Control Bar -->
+    <div class="meeting-type-bar" role="toolbar" aria-label="Select meeting type">
+      <span class="meeting-type-label">Meeting Type:</span>
+      <div class="meeting-type-buttons" role="radiogroup">
+        <button type="button" class="meeting-type-btn active" data-type="standard" title="Regular Sunday meeting with assigned talks">⛪ Standard</button>
+        <button type="button" class="meeting-type-btn" data-type="fast_and_testimony" title="Fast and Testimony Sunday (Members bear testimony, no talks)">🍞 Fast & Testimony</button>
+        <button type="button" class="meeting-type-btn" data-type="general_conference" title="General Conference broadcast (No local ward meeting)">📡 General Conference</button>
+        <button type="button" class="meeting-type-btn" data-type="stake_conference" title="Stake Conference at Stake Center (No local ward meeting)">🏛️ Stake Conference</button>
+      </div>
+    </div>
+
+    <!-- Conference Special Banner (Visible during General or Stake Conference) -->
+    <section class="card card-conference" id="conference-card" style="display: none;">
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="card-icon" id="conf-icon">📡</span>
+          <h2 class="card-title" id="conf-main-title">Conference Sunday</h2>
+        </div>
+        <span class="pill-badge pill-blue" id="conf-type-badge">Worldwide Broadcast</span>
+      </div>
+      <div class="card-body conference-body">
+        <div class="conf-alert-box">
+          <p class="conf-lead" id="conf-notice-text">Notice: No local ward sacrament meeting or 2nd hour Sunday School/Quorum classes will be held today.</p>
+        </div>
+        
+        <div class="conf-form-grid">
+          <div class="conf-field">
+            <label class="field-label" for="conf-title">Conference Title</label>
+            <input type="text" id="conf-title" class="text-input" placeholder="e.g. 196th Semiannual General Conference">
+          </div>
+
+          <div class="conf-field">
+            <label class="field-label" for="conf-url">Broadcast / Stream Link</label>
+            <div class="input-with-action">
+              <input type="url" id="conf-url" class="text-input text-url" placeholder="https://www.churchofjesuschrist.org/general-conference">
+              <a id="conf-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Stream Link">🔗</a>
+            </div>
+          </div>
+
+          <div class="conf-field full-width">
+            <label class="field-label" for="conf-details">Sessions Schedule & Notes</label>
+            <textarea id="conf-details" class="text-area-input" rows="3" placeholder="Saturday Sessions: 10:00 AM, 2:00 PM, 6:00 PM&#10;Sunday Sessions: 10:00 AM, 2:00 PM"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Section: Sacrament Meeting, Hymns & Talks Order -->
+    <section class="section-top-grid" id="ward-meeting-top-grid">
+      
+      <!-- Panel 1: Sacrament Meeting Program -->
+      <article class="card card-sacrament tab-content" id="panel-sacrament">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">⛪</span>
+            <h2 class="card-title" id="sacrament-card-title">Sacrament Meeting</h2>
+          </div>
+          <span class="pill-badge pill-amber" id="sacrament-card-badge">Main Service</span>
+        </div>
+
+        <div class="card-body">
+          <!-- Fast and Testimony Notice Banner -->
+          <div class="fast-testimony-banner" id="fast-testimony-banner" style="display: none;">
+            <span class="banner-icon">🍞</span>
+            <div>
+              <strong>Fast & Testimony Sunday:</strong> Following the sacrament, time is devoted for congregation members to bear their testimonies. No assigned talks are scheduled.
+            </div>
+          </div>
+
+          <div class="form-table">
+            
+            <!-- Opening Prayer -->
+            <div class="form-row">
+              <label class="row-label" for="opening-prayer-name">Opening Prayer</label>
+              <div class="role-name-input-group">
+                <select id="opening-prayer-role" class="select-role" aria-label="Opening prayer role">
+                  <option value="Brother">Brother</option>
+                  <option value="Sister">Sister</option>
+                </select>
+                <input type="text" id="opening-prayer-name" class="text-input" placeholder="Speaker Name" list="names-datalist" autocomplete="off">
+              </div>
+            </div>
+
+            <!-- Talks Section (Automatically hidden/collapsed on Fast & Testimony Sunday) -->
+            <div id="talks-group" class="talks-group">
+
+              <!-- 1st Talk -->
+              <div class="form-row">
+                <div class="row-label-group">
+                  <span class="row-label">1st Talk</span>
+                  <div class="org-selector-wrap">
+                    <select id="talk1-org" class="select-org-pill" aria-label="1st Talk Organization">
+                      <option value="Bishopric">Bishopric</option>
+                      <option value="Stake High Councilor">Stake High Councilor</option>
+                      <option value="Youth - Young Men">Youth - Young Men</option>
+                      <option value="Youth - Young Women">Youth - Young Women</option>
+                      <option value="Custom">Custom...</option>
+                    </select>
+                    <input type="text" id="talk1-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                  </div>
+                </div>
+                <div class="speaker-topic-group">
+                  <input type="text" id="talk1-title" class="text-input font-medium" placeholder="Topic: e.g. Seminary and Institute Graduations" list="topics-datalist">
+                  <div class="speaker-field">
+                    <span class="field-prepend">By:</span>
+                    <input type="text" id="talk1-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2nd Talk -->
+              <div class="form-row">
+                <div class="row-label-group">
+                  <span class="row-label">2nd Talk</span>
+                  <div class="org-selector-wrap">
+                    <select id="talk2-org" class="select-org-pill" aria-label="2nd Talk Organization">
+                      <option value="Elders Quorum">Elders Quorum</option>
+                      <option value="Relief Society">Relief Society</option>
+                      <option value="Youth - Young Men">Youth - Young Men</option>
+                      <option value="Youth - Young Women">Youth - Young Women</option>
+                      <option value="Stake High Councilor">Stake High Councilor</option>
+                      <option value="Bishopric">Bishopric</option>
+                      <option value="Custom">Custom...</option>
+                    </select>
+                    <input type="text" id="talk2-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                  </div>
+                </div>
+                <div class="speaker-topic-group">
+                  <div class="input-with-action">
+                    <input type="text" id="talk2-title" class="text-input font-medium" placeholder="Topic: e.g. A New Normal" list="topics-datalist">
+                    <a id="talk2-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL" style="display:none;">🔗</a>
+                  </div>
+                  <input type="url" id="talk2-url" class="text-input text-url text-sm" placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
+                  <div class="speaker-field">
+                    <span class="field-prepend">By:</span>
+                    <input type="text" id="talk2-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3rd Talk -->
+              <div class="form-row">
+                <div class="row-label-group">
+                  <span class="row-label">3rd Talk</span>
+                  <div class="org-selector-wrap">
+                    <select id="talk3-org" class="select-org-pill" aria-label="3rd Talk Organization">
+                      <option value="Member">Member (Concluding)</option>
+                      <option value="Bishopric">Bishopric</option>
+                      <option value="Stake High Councilor">Stake High Councilor</option>
+                      <option value="Elders Quorum">Elders Quorum</option>
+                      <option value="Relief Society">Relief Society</option>
+                      <option value="Youth - Young Men">Youth - Young Men</option>
+                      <option value="Youth - Young Women">Youth - Young Women</option>
+                      <option value="Custom">Custom...</option>
+                    </select>
+                    <input type="text" id="talk3-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                  </div>
+                </div>
+                <div class="speaker-topic-group">
+                  <div class="input-with-action">
+                    <input type="text" id="talk3-title" class="text-input font-medium" placeholder="Topic: e.g. Sacrifice (Gospel Principles)" list="topics-datalist">
+                    <a id="talk3-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL" style="display:none;">🔗</a>
+                  </div>
+                  <input type="url" id="talk3-url" class="text-input text-url text-sm" placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
+                  <div class="speaker-field">
+                    <span class="field-prepend">By:</span>
+                    <input type="text" id="talk3-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Closing Prayer -->
+            <div class="form-row">
+              <label class="row-label" for="closing-prayer-name">Closing Prayer</label>
+              <div class="role-name-input-group">
+                <select id="closing-prayer-role" class="select-role" aria-label="Closing prayer role">
+                  <option value="Sister">Sister</option>
+                  <option value="Brother">Brother</option>
+                </select>
+                <input type="text" id="closing-prayer-name" class="text-input" placeholder="Speaker Name" list="names-datalist" autocomplete="off">
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 2: Hymns -->
+      <article class="card card-hymns tab-content" id="panel-hymns">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">🎵</span>
+            <h2 class="card-title">Hymns</h2>
+          </div>
+          <span class="pill-badge pill-blue">Music</span>
+        </div>
+
+        <div class="card-body hymns-list">
+          <div class="hymn-input-group">
+            <label class="hymn-label" for="hymn-opening">Opening Hymn</label>
+            <input type="text" id="hymn-opening" class="text-input hymn-input" placeholder="# / Title (e.g. #2 - The Spirit of God)" list="hymns-datalist">
+          </div>
+
+          <div class="hymn-input-group">
+            <label class="hymn-label" for="hymn-sacrament">Sacrament Hymn</label>
+            <input type="text" id="hymn-sacrament" class="text-input hymn-input" placeholder="# / Title (e.g. #193 - I Stand All Amazed)" list="hymns-datalist">
+          </div>
+
+          <div class="hymn-input-group">
+            <label class="hymn-label" for="hymn-interlude">Interlude / Rest</label>
+            <input type="text" id="hymn-interlude" class="text-input hymn-input" placeholder="Optional (e.g. Special Musical Number)" list="hymns-datalist">
+          </div>
+
+          <div class="hymn-input-group">
+            <label class="hymn-label" for="hymn-closing">Closing Hymn</label>
+            <input type="text" id="hymn-closing" class="text-input hymn-input" placeholder="# / Title (e.g. #243 - Let Us All Press On)" list="hymns-datalist">
+          </div>
+        </div>
+      </article>
+
+      <!-- Panel 3: Talks Order Reference Card -->
+      <aside class="card card-order tab-content" id="panel-order">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">📋</span>
+            <h2 class="card-title">Talks Order</h2>
+          </div>
+          <span class="pill-badge pill-gold">Monthly Guide</span>
+        </div>
+
+        <div class="card-body">
+          <ul class="order-list" id="order-rules-list">
+            <li class="order-item" data-week="1">
+              <span class="order-badge">1st Sunday</span>
+              <span class="order-desc">Testimonies</span>
+            </li>
+            <li class="order-item" data-week="2">
+              <span class="order-badge">2nd Sunday</span>
+              <span class="order-desc">Elders Quorum</span>
+            </li>
+            <li class="order-item" data-week="3">
+              <span class="order-badge">3rd Sunday</span>
+              <span class="order-desc">Relief Society</span>
+            </li>
+            <li class="order-item" data-week="4">
+              <span class="order-badge">4th Sunday</span>
+              <span class="order-desc">Elders Quorum</span>
+            </li>
+            <li class="order-item" data-week="5">
+              <span class="order-badge">5th Sunday</span>
+              <span class="order-desc">Bishopric</span>
+            </li>
+          </ul>
+
+          <div class="order-active-hint" id="order-active-hint">
+            <strong>Active Rule:</strong> <span id="current-rotation-text">Loading...</span>
+          </div>
+        </div>
+      </aside>
+
+    </section>
+
+    <!-- Bottom Section: Second Hour Classes (Sunday School & Quorums) -->
+    <section class="section-bottom tab-content" id="panel-classes">
+      <div class="card card-classes">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon">📖</span>
+            <h2 class="card-title">Second Hour Classes (25 Minutes Each)</h2>
+          </div>
+          <span class="pill-badge pill-terracotta">Instruction & Quorums</span>
+        </div>
+
+        <div class="card-body classes-layout">
+          
+          <!-- 1st Class: Sunday School -->
+          <div class="class-block sunday-school-block">
+            <div class="class-block-header">
+              <div class="class-title-badge">
+                <span class="badge-num">1st Class</span>
+                <span class="badge-title">Sunday School (Come Follow Me)</span>
+              </div>
+              <span class="badge-duration">25 Min</span>
+            </div>
+
+            <div class="class-inputs-row">
+              <div class="class-topic-col">
+                <label class="field-label" for="ss-topic">Lesson Topic & Scripture Reference</label>
+                <div class="input-with-action">
+                  <textarea id="ss-topic" class="text-area-input" rows="2" placeholder="e.g. September 7–13: “He Shall Direct Thy Paths” Proverbs 1–4; 15–16; 22; 31; Ecclesiastes 1–3; 11–12"></textarea>
+                  <a id="ss-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Come Follow Me Lesson" style="display:none;">🔗</a>
+                </div>
+                <input type="url" id="ss-url" class="text-input text-url text-sm" placeholder="Lesson study link (https://churchofjesuschrist.org/study/come-follow-me/...)">
+              </div>
+
+              <div class="class-teacher-col">
+                <label class="field-label" for="ss-teacher">Teacher Name</label>
+                <input type="text" id="ss-teacher" class="text-input" placeholder="Teacher Name" list="names-datalist">
+              </div>
+            </div>
+          </div>
+
+          <!-- 2nd Class: Quorums & Organizations -->
+          <div class="class-block quorums-block">
+            <div class="class-block-header">
+              <div class="class-title-badge">
+                <span class="badge-num">2nd Class</span>
+                <span class="badge-title">Quorums & Auxiliary Organizations</span>
+              </div>
+              <span class="badge-duration">25 Min</span>
+            </div>
+
+            <div class="quorums-table-responsive">
+              <table class="quorums-table">
+                <thead>
+                  <tr>
+                    <th class="col-org">Organization</th>
+                    <th class="col-topic">Lesson Topic / General Conference Talk</th>
+                    <th class="col-teacher">Teacher / Leader Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  <!-- Elders Quorum -->
+                  <tr>
+                    <td class="org-cell">
+                      <span class="org-tag org-eq">Elders Quorum</span>
+                    </td>
+                    <td>
+                      <input type="text" id="eq-topic" class="text-input table-input" placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
+                      <input type="url" id="eq-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                    </td>
+                    <td>
+                      <input type="text" id="eq-teacher" class="text-input table-input" placeholder="Teacher Name" list="names-datalist">
+                    </td>
+                  </tr>
+
+                  <!-- Relief Society -->
+                  <tr>
+                    <td class="org-cell">
+                      <span class="org-tag org-rs">Relief Society</span>
+                    </td>
+                    <td>
+                      <input type="text" id="rs-topic" class="text-input table-input" placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
+                      <input type="url" id="rs-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                    </td>
+                    <td>
+                      <input type="text" id="rs-teacher" class="text-input table-input" placeholder="Teacher (e.g. Sahitya)" list="names-datalist">
+                    </td>
+                  </tr>
+
+                  <!-- Young Men -->
+                  <tr>
+                    <td class="org-cell">
+                      <span class="org-tag org-ym">Young Men</span>
+                    </td>
+                    <td>
+                      <input type="text" id="ym-topic" class="text-input table-input" placeholder="Lesson Topic" list="topics-datalist">
+                      <input type="url" id="ym-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                    </td>
+                    <td>
+                      <input type="text" id="ym-teacher" class="text-input table-input" placeholder="Teacher / Advisor" list="names-datalist">
+                    </td>
+                  </tr>
+
+                  <!-- Young Women -->
+                  <tr>
+                    <td class="org-cell">
+                      <span class="org-tag org-yw">Young Women</span>
+                    </td>
+                    <td>
+                      <input type="text" id="yw-topic" class="text-input table-input" placeholder="Lesson Topic" list="topics-datalist">
+                      <input type="url" id="yw-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                    </td>
+                    <td>
+                      <input type="text" id="yw-teacher" class="text-input table-input" placeholder="Teacher / Advisor" list="names-datalist">
+                    </td>
+                  </tr>
+
+                  <!-- Primary -->
+                  <tr>
+                    <td class="org-cell">
+                      <span class="org-tag org-primary">Primary</span>
+                    </td>
+                    <td>
+                      <input type="text" id="pri-topic" class="text-input table-input" placeholder="Primary Lesson Topic" list="topics-datalist">
+                      <input type="url" id="pri-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                    </td>
+                    <td>
+                      <input type="text" id="pri-teacher" class="text-input table-input" placeholder="Teacher / Music Leader" list="names-datalist">
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- WhatsApp Quick-Share Modal / Drawer -->
+  <div class="modal-backdrop" id="whatsapp-modal" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">💬</span>
+          <h3 id="modal-title" class="modal-title">WhatsApp Quick-Share</h3>
+        </div>
+        <button id="btn-close-modal" class="btn-close" aria-label="Close modal">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="presets-toolbar" role="tablist">
+          <button class="preset-btn active" data-preset="full">🌟 Full Agenda</button>
+          <button class="preset-btn" data-preset="sacrament">⛪ Sacrament</button>
+          <button class="preset-btn" data-preset="classes">📖 Classes</button>
+          <button class="preset-btn" data-preset="reminder">👤 Remind Member</button>
+        </div>
+
+        <!-- Reminder Customizer (only visible when reminder preset is active) -->
+        <div class="reminder-options" id="reminder-options" style="display: none;">
+          <div class="reminder-inputs-grid">
+            <div>
+              <label class="field-label" for="reminder-member-select">Select Assignment:</label>
+              <select id="reminder-member-select" class="select-role">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Formatted WhatsApp Message Preview -->
+        <div class="preview-wrap">
+          <div class="preview-header">
+            <span class="preview-label">Live Message Preview:</span>
+            <span class="preview-hint">You can edit text before sharing</span>
+          </div>
+          <textarea id="whatsapp-preview-text" class="preview-textarea" rows="12"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-copy-text" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span>Copy Text</span>
+        </button>
+        <button id="btn-share-whatsapp-direct" class="btn btn-whatsapp btn-large">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z"/></svg>
+          <span>Share to WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+
+  <!-- Datalists for 0ms Autocomplete -->
+  <datalist id="names-datalist"></datalist>
+  <datalist id="topics-datalist"></datalist>
+  <datalist id="hymns-datalist">
+    <option value="#2 - The Spirit of God">
+    <option value="#3 - Now Let Us Rejoice">
+    <option value="#5 - High on the Mountain Top">
+    <option value="#19 - We Thank Thee, O God, for a Prophet">
+    <option value="#58 - Come, Let Us Anew">
+    <option value="#85 - How Firm a Foundation">
+    <option value="#113 - Our Savior's Love">
+    <option value="#134 - I Believe in Christ">
+    <option value="#169 - As Now We Take the Sacrament">
+    <option value="#172 - In Humility, Our Savior">
+    <option value="#187 - God Loved Us, So He Sent His Son">
+    <option value="#193 - I Stand All Amazed">
+    <option value="#243 - Let Us All Press On">
+    <option value="#270 - I'll Go Where You Want Me to Go">
+    <option value="#301 - I Am a Child of God">
+    <option value="#304 - Teach Me to Walk in the Light">
+  </datalist>
+
+  <script src="app.js"></script>
+</body>
+</html>
