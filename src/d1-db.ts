@@ -423,3 +423,49 @@ export async function getComeFollowMeD1(db: D1Database, year?: number, query?: s
   const { results } = await db.prepare(sql).bind(...params).all<any>();
   return results || [];
 }
+
+export async function seedChurchDataD1(
+  db: D1Database,
+  hymns: any[],
+  talks: any[],
+  cfm: any[]
+): Promise<{ hymnsCount: number; talksCount: number; cfmCount: number }> {
+  await ensureD1Schema(db);
+
+  // Batch insert hymns in chunks of 50
+  for (let i = 0; i < hymns.length; i += 50) {
+    const chunk = hymns.slice(i, i + 50);
+    const stmts = chunk.map((h) =>
+      db.prepare("INSERT OR REPLACE INTO hymns (book, number, title, url) VALUES (?, ?, ?, ?)")
+        .bind(h.book, h.number, h.title, h.url)
+    );
+    await db.batch(stmts);
+  }
+
+  // Batch insert talks in chunks of 50
+  for (let i = 0; i < talks.length; i += 50) {
+    const chunk = talks.slice(i, i + 50);
+    const stmts = chunk.map((t) =>
+      db.prepare("INSERT OR REPLACE INTO conference_talks (year, month, conference_name, session, title, speaker, url) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(t.year, t.month, t.conference_name, t.session, t.title, t.speaker, t.url)
+    );
+    await db.batch(stmts);
+  }
+
+  // Batch insert CFM in chunks of 50
+  for (let i = 0; i < cfm.length; i += 50) {
+    const chunk = cfm.slice(i, i + 50);
+    const stmts = chunk.map((c) =>
+      db.prepare("INSERT OR REPLACE INTO come_follow_me (year, book_title, week_number, date_range, title, scriptures, url) VALUES (?, ?, ?, ?, ?, ?, ?)")
+        .bind(c.year, c.book_title, c.week_number, c.date_range, c.title, c.scriptures, c.url)
+    );
+    await db.batch(stmts);
+  }
+
+  return {
+    hymnsCount: hymns.length,
+    talksCount: talks.length,
+    cfmCount: cfm.length,
+  };
+}
+

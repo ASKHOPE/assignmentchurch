@@ -13,6 +13,7 @@ import {
   searchHymnsD1,
   searchConferenceTalksD1,
   getComeFollowMeD1,
+  seedChurchDataD1,
 } from "./d1-db";
 import {
   formatFullAgendaWhatsApp,
@@ -177,6 +178,17 @@ export default {
             });
           }
           return Response.json({ success: true, count: lessons.length, lessons }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/admin/seed-d1 (One-click seed of remote Cloudflare D1)
+        if (request.method === "GET" && path === "/api/admin/seed-d1") {
+          if (!env.DB) {
+            return Response.json({ error: "No DB binding found" }, { status: 400 });
+          }
+          const result = await seedChurchDataD1(env.DB, hymnsFallback, talksFallback, cfmFallback);
+          return Response.json({ success: true, message: "Cloudflare D1 seeded successfully!", ...result }, {
             headers: { "Access-Control-Allow-Origin": "*" },
           });
         }
