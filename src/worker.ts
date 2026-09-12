@@ -237,15 +237,11 @@ export default {
           if (!env.DB) {
             return Response.json({ error: "No DB binding found" }, { status: 400 });
           }
-          const result = await seedChurchDataD1(env.DB, hymnsFallback, talksFallback, cfmFallback);
-          const gpResult = await seedGospelPrinciplesD1(env.DB, gpFallback);
-          const fsyResult = await seedFsyLessonsD1(env.DB, fsyFallback);
+          const result = await seedChurchDataD1(env.DB, hymnsFallback, talksFallback, cfmFallback, gpFallback, fsyFallback);
           return Response.json({ 
             success: true, 
-            message: "Cloudflare D1 seeded successfully!", 
-            ...result, 
-            gospelPrinciplesCount: gpResult.count,
-            fsyLessonsCount: fsyResult.count
+            message: "Cloudflare D1 seeded successfully with all 5 church datasets!", 
+            ...result
           }, {
             headers: { "Access-Control-Allow-Origin": "*" },
           });

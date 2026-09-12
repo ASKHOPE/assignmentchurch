@@ -458,8 +458,10 @@ export async function seedChurchDataD1(
   db: D1Database,
   hymns: any[],
   talks: any[],
-  cfm: any[]
-): Promise<{ hymnsCount: number; talksCount: number; cfmCount: number }> {
+  cfm: any[],
+  gp?: any[],
+  fsy?: any[]
+): Promise<{ hymnsCount: number; talksCount: number; cfmCount: number; gpCount: number; fsyCount: number }> {
   await ensureD1Schema(db);
 
   // Batch insert hymns in chunks of 50
@@ -492,10 +494,36 @@ export async function seedChurchDataD1(
     await db.batch(stmts);
   }
 
+  // Batch insert GP
+  if (gp && gp.length > 0) {
+    for (let i = 0; i < gp.length; i += 50) {
+      const chunk = gp.slice(i, i + 50);
+      const stmts = chunk.map((g) =>
+        db.prepare("INSERT OR REPLACE INTO gospel_principles (chapter_number, title, url) VALUES (?, ?, ?)")
+          .bind(g.chapter_number, g.title, g.url)
+      );
+      await db.batch(stmts);
+    }
+  }
+
+  // Batch insert FSY
+  if (fsy && fsy.length > 0) {
+    for (let i = 0; i < fsy.length; i += 50) {
+      const chunk = fsy.slice(i, i + 50);
+      const stmts = chunk.map((f) =>
+        db.prepare("INSERT OR REPLACE INTO fsy_lessons (year, month, sunday_number, organization, title, description, url) VALUES (?, ?, ?, ?, ?, ?, ?)")
+          .bind(f.year, f.month, f.sunday_number, f.organization, f.title, f.description || "", f.url)
+      );
+      await db.batch(stmts);
+    }
+  }
+
   return {
     hymnsCount: hymns.length,
     talksCount: talks.length,
     cfmCount: cfm.length,
+    gpCount: gp ? gp.length : 0,
+    fsyCount: fsy ? fsy.length : 0,
   };
 }
 

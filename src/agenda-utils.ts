@@ -7,7 +7,8 @@ export interface ClassInfo {
 }
 
 export interface ClassesStructure {
-  sunday_school: ClassInfo;
+  sunday_school: ClassInfo; // Combined Adults (Sunday School)
+  sunday_school_youth?: ClassInfo; // Combined Youth (Sunday School)
   elders_quorum: ClassInfo;
   relief_society: ClassInfo;
   young_men: ClassInfo;
@@ -187,6 +188,7 @@ export function createDefaultAgenda(dateStr: string): AgendaRecord {
     hymn_closing: "",
     classes_json: {
       sunday_school: { topic: "", url: "", teacher: "" },
+      sunday_school_youth: { topic: "", url: "", teacher: "" },
       elders_quorum: { topic: "", url: "", teacher: "" },
       relief_society: { topic: "", url: "", teacher: "" },
       young_men: { topic: "", url: "", teacher: "" },

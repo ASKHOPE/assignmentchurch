@@ -7,6 +7,41 @@ let activeDate = "";
 let currentAgenda = null;
 let currentBookFilter = "Hymns (1985)"; // Default to standard Hymnbook
 let searchDebounceTimer = null;
+let currentViewMode = "grid";
+try {
+  currentViewMode = localStorage.getItem("study_view_mode") || "grid";
+} catch (e) {}
+
+function applyViewMode(mode) {
+  currentViewMode = mode || "grid";
+  try {
+    localStorage.setItem("study_view_mode", currentViewMode);
+  } catch (e) {}
+
+  document.querySelectorAll(".btn-view-toggle").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.view === currentViewMode);
+  });
+
+  const containers = [
+    document.getElementById("hymnsGrid"),
+    document.getElementById("talksGrid"),
+    document.getElementById("gpGrid"),
+    document.getElementById("cfmGrid"),
+    document.getElementById("fsyGrid"),
+    ...document.querySelectorAll("#talksGridContainer .cards-grid"),
+    ...document.querySelectorAll(".conf-cards-grid")
+  ];
+
+  containers.forEach(el => {
+    if (el) {
+      if (currentViewMode === "list") {
+        el.classList.add("view-mode-list");
+      } else {
+        el.classList.remove("view-mode-list");
+      }
+    }
+  });
+}
 
 // DOM Elements
 const curateDateInput = document.getElementById("curateDateInput");
@@ -16,14 +51,24 @@ const backToAgendaBtn = document.getElementById("backToAgendaBtn");
 const viewInAgendaLink = document.getElementById("viewInAgendaLink");
 const overviewSundayTitle = document.getElementById("overviewSundayTitle");
 
-// Overview Pills
+// Overview Pills: All 4 Hymns
 const valOpeningHymn = document.getElementById("valOpeningHymn");
 const valSacramentHymn = document.getElementById("valSacramentHymn");
+const valInterludeHymn = document.getElementById("valInterludeHymn");
 const valClosingHymn = document.getElementById("valClosingHymn");
+
+// Overview Pills: Talks
 const valTalk1 = document.getElementById("valTalk1");
 const valTalk2 = document.getElementById("valTalk2");
 const valTalk3 = document.getElementById("valTalk3");
-const valCfm = document.getElementById("valCfm");
+
+// Overview Pills: Second Hour Classes & Quorums
+const valCfmAdults = document.getElementById("valCfmAdults");
+const valCfmYouth = document.getElementById("valCfmYouth");
+const valEq = document.getElementById("valEq");
+const valRs = document.getElementById("valRs");
+const valYm = document.getElementById("valYm");
+const valYw = document.getElementById("valYw");
 
 // Tabs
 const tabButtons = document.querySelectorAll(".study-tab");
@@ -36,6 +81,12 @@ const bookChips = document.querySelectorAll(".book-filter-chips .chip");
 const hymnsGrid = document.getElementById("hymnsGrid");
 const hymnResultsCount = document.getElementById("hymnResultsCount");
 
+// Gospel Principles Tab (Youth 1st Talk)
+const gpSearchInput = document.getElementById("gpSearchInput");
+const clearGpSearch = document.getElementById("clearGpSearch");
+const gpGrid = document.getElementById("gpGrid");
+const gpResultsCount = document.getElementById("gpResultsCount");
+
 // Talks Tab
 const talkSearchInput = document.getElementById("talkSearchInput");
 const clearTalkSearch = document.getElementById("clearTalkSearch");
@@ -45,12 +96,6 @@ const talkSpeakerSelect = document.getElementById("talkSpeakerSelect");
 const talksGrid = document.getElementById("talksGrid");
 const talkResultsCount = document.getElementById("talkResultsCount");
 
-// Gospel Principles Tab (Youth 1st Talk)
-const gpSearchInput = document.getElementById("gpSearchInput");
-const clearGpSearch = document.getElementById("clearGpSearch");
-const gpGrid = document.getElementById("gpGrid");
-const gpResultsCount = document.getElementById("gpResultsCount");
-
 // CFM Tab
 const cfmSearchInput = document.getElementById("cfmSearchInput");
 const clearCfmSearch = document.getElementById("clearCfmSearch");
@@ -58,6 +103,14 @@ const cfmYearSelect = document.getElementById("cfmYearSelect");
 const cfmActiveMatchBanner = document.getElementById("cfmActiveMatchBanner");
 const cfmGrid = document.getElementById("cfmGrid");
 const cfmResultsCount = document.getElementById("cfmResultsCount");
+
+// FSY Lessons Tab
+const fsySearchInput = document.getElementById("fsySearchInput");
+const clearFsySearch = document.getElementById("clearFsySearch");
+const fsyMonthSelect = document.getElementById("fsyMonthSelect");
+const fsyOrgSelect = document.getElementById("fsyOrgSelect");
+const fsyGrid = document.getElementById("fsyGrid");
+const fsyResultsCount = document.getElementById("fsyResultsCount");
 
 // Toast
 const studyToast = document.getElementById("studyToast");
@@ -72,6 +125,16 @@ function showToast(message, type = "success") {
 }
 
 /**
+ * Timezone-safe date formatting (prevents UTC day shifts)
+ */
+function formatDateToISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
  * Sunday navigation math
  */
 function getNextSunday(dateStr) {
@@ -80,7 +143,7 @@ function getNextSunday(dateStr) {
   const currentDay = date.getDay();
   const daysUntilSunday = currentDay === 0 ? 7 : (7 - currentDay);
   date.setDate(date.getDate() + daysUntilSunday);
-  return date.toISOString().split("T")[0];
+  return formatDateToISO(date);
 }
 
 function getPrevSunday(dateStr) {
@@ -89,7 +152,7 @@ function getPrevSunday(dateStr) {
   const currentDay = date.getDay();
   const daysSinceSunday = currentDay === 0 ? 7 : currentDay;
   date.setDate(date.getDate() - daysSinceSunday);
-  return date.toISOString().split("T")[0];
+  return formatDateToISO(date);
 }
 
 function getInitialSunday() {
@@ -103,7 +166,7 @@ function getInitialSunday() {
   const diff = day === 0 ? 0 : 7 - day;
   const nextSun = new Date(today);
   nextSun.setDate(today.getDate() + diff);
-  return nextSun.toISOString().split("T")[0];
+  return formatDateToISO(nextSun);
 }
 
 /**
@@ -130,78 +193,48 @@ async function loadAgendaForDate(dateStr) {
 }
 
 /**
+ * Helper to render pill link or plain text safely
+ */
+function renderPill(el, val, url, emptyText = "None selected") {
+  if (!el) return;
+  if (val) {
+    el.innerHTML = url
+      ? `<a href="${url}" target="_blank" rel="noopener">${escapeHtml(val)} 🔗</a>`
+      : escapeHtml(val);
+  } else {
+    el.textContent = emptyText;
+  }
+}
+
+/**
  * Render Current Curated Plan Overview Card
  */
 function renderOverviewCard() {
   if (!currentAgenda) return;
-  const d = new Date(activeDate + "T00:00:00");
-  const dateFormatted = d.toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" });
+  const [y, m, d] = activeDate.split("-").map(Number);
+  const dObj = new Date(y, m - 1, d);
+  const dateFormatted = dObj.toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" });
   overviewSundayTitle.textContent = `Sunday Plan: ${dateFormatted} (${currentAgenda.week_label || "Sunday"})`;
 
-  // Opening Hymn
-  if (currentAgenda.hymn_opening) {
-    valOpeningHymn.innerHTML = currentAgenda.hymn_opening_url 
-      ? `<a href="${currentAgenda.hymn_opening_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.hymn_opening)} 🔗</a>`
-      : escapeHtml(currentAgenda.hymn_opening);
-  } else {
-    valOpeningHymn.textContent = "None selected";
-  }
+  // 1. All 4 Hymns
+  renderPill(valOpeningHymn, currentAgenda.hymn_opening, currentAgenda.hymn_opening_url);
+  renderPill(valSacramentHymn, currentAgenda.hymn_sacrament, currentAgenda.hymn_sacrament_url);
+  renderPill(valInterludeHymn, currentAgenda.hymn_interlude, currentAgenda.hymn_interlude_url);
+  renderPill(valClosingHymn, currentAgenda.hymn_closing, currentAgenda.hymn_closing_url);
 
-  // Sacrament Hymn
-  if (currentAgenda.hymn_sacrament) {
-    valSacramentHymn.innerHTML = currentAgenda.hymn_sacrament_url 
-      ? `<a href="${currentAgenda.hymn_sacrament_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.hymn_sacrament)} 🔗</a>`
-      : escapeHtml(currentAgenda.hymn_sacrament);
-  } else {
-    valSacramentHymn.textContent = "None selected";
-  }
+  // 2. Sacrament Talks
+  renderPill(valTalk1, currentAgenda.talk1_title, currentAgenda.talk1_url, "No topic set");
+  renderPill(valTalk2, currentAgenda.talk2_title, currentAgenda.talk2_url, "No topic set");
+  renderPill(valTalk3, currentAgenda.talk3_title, currentAgenda.talk3_url, "No topic set");
 
-  // Closing Hymn
-  if (currentAgenda.hymn_closing) {
-    valClosingHymn.innerHTML = currentAgenda.hymn_closing_url 
-      ? `<a href="${currentAgenda.hymn_closing_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.hymn_closing)} 🔗</a>`
-      : escapeHtml(currentAgenda.hymn_closing);
-  } else {
-    valClosingHymn.textContent = "None selected";
-  }
-
-  // 1st Talk (Youth / Gospel Principles)
-  if (currentAgenda.talk1_title) {
-    valTalk1.innerHTML = currentAgenda.talk1_url 
-      ? `<a href="${currentAgenda.talk1_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.talk1_title)} 🔗</a>`
-      : escapeHtml(currentAgenda.talk1_title);
-  } else {
-    valTalk1.textContent = "No topic set";
-  }
-
-  // 2nd Talk (General Conference)
-  if (currentAgenda.talk2_title) {
-    valTalk2.innerHTML = currentAgenda.talk2_url 
-      ? `<a href="${currentAgenda.talk2_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.talk2_title)} 🔗</a>`
-      : escapeHtml(currentAgenda.talk2_title);
-  } else {
-    valTalk2.textContent = "No topic set";
-  }
-
-  // 3rd Talk (General Conference / Adult)
-  if (currentAgenda.talk3_title) {
-    valTalk3.innerHTML = currentAgenda.talk3_url 
-      ? `<a href="${currentAgenda.talk3_url}" target="_blank" rel="noopener">${escapeHtml(currentAgenda.talk3_title)} 🔗</a>`
-      : escapeHtml(currentAgenda.talk3_title);
-  } else {
-    valTalk3.textContent = "No topic set";
-  }
-
-  // CFM
-  const ssTopic = currentAgenda.classes_json?.sunday_school?.topic || "";
-  const ssUrl = currentAgenda.classes_json?.sunday_school?.url || "";
-  if (ssTopic) {
-    valCfm.innerHTML = ssUrl
-      ? `<a href="${ssUrl}" target="_blank" rel="noopener">${escapeHtml(ssTopic)} 🔗</a>`
-      : escapeHtml(ssTopic);
-  } else {
-    valCfm.textContent = "No CFM lesson applied";
-  }
+  // 3. Second Hour Classes & Quorums
+  const cJson = currentAgenda.classes_json || {};
+  renderPill(valCfmAdults, cJson.sunday_school?.topic, cJson.sunday_school?.url, "No lesson set");
+  renderPill(valCfmYouth, cJson.sunday_school_youth?.topic, cJson.sunday_school_youth?.url, "No lesson set");
+  renderPill(valEq, cJson.elders_quorum?.topic, cJson.elders_quorum?.url, "No talk set");
+  renderPill(valRs, cJson.relief_society?.topic, cJson.relief_society?.url, "No talk set");
+  renderPill(valYm, cJson.young_men?.topic, cJson.young_men?.url, "No lesson set");
+  renderPill(valYw, cJson.young_women?.topic, cJson.young_women?.url, "No lesson set");
 }
 
 /**
@@ -274,16 +307,20 @@ async function loadHymns() {
 
       return `
         <div class="resource-card hymn-card">
-          <div class="card-header">
-            <span class="badge ${bookClass}">${escapeHtml(bookLabel)}</span>
-            <span class="hymn-number">#${h.number}</span>
-          </div>
-          <h3 class="card-title">${escapeHtml(h.title)}</h3>
-          <div class="card-links">
-            <a href="${h.url}" target="_blank" rel="noopener" class="btn-link-out">
-              <span>🎧 Listen & Music</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
+          <div class="card-info-wrap">
+            <div class="card-header">
+              <span class="badge ${bookClass}">${escapeHtml(bookLabel)}</span>
+              <span class="hymn-number">#${h.number}</span>
+            </div>
+            <div class="card-content-wrap">
+              <h3 class="card-title">${escapeHtml(h.title)}</h3>
+            </div>
+            <div class="card-links">
+              <a href="${h.url}" target="_blank" rel="noopener" class="btn-link-out">
+                <span>🎧 Listen & Music</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>
           </div>
           <div class="action-btn-row">
             <button class="btn-assign" onclick="assignHymn('opening', ${h.number}, '${escapeJs(h.title)}', '${escapeJs(h.url)}')">Opening</button>
@@ -294,6 +331,7 @@ async function loadHymns() {
         </div>
       `;
     }).join("");
+    applyViewMode(currentViewMode);
   } catch (err) {
     console.error("Error loading hymns:", err);
     hymnsGrid.innerHTML = `<div class="error-state">Failed to load hymns.</div>`;
@@ -407,6 +445,7 @@ async function loadTalks() {
         </div>
       `;
     }
+    applyViewMode(currentViewMode);
   } catch (err) {
     console.error("Error loading talks:", err);
     talksGrid.innerHTML = `<div class="error-state">Failed to load conference talks.</div>`;
@@ -418,22 +457,26 @@ function renderTalkCard(t) {
   const speaker = t.speaker;
   return `
     <div class="resource-card talk-card">
-      <div class="card-header">
-        <span class="badge badge-conf">${escapeHtml(t.conference_name)}</span>
-        <span class="conf-session">${escapeHtml(t.session || "General Session")}</span>
-      </div>
-      <h3 class="card-title">“${escapeHtml(title)}”</h3>
-      <p class="card-author">👤 <strong>${escapeHtml(speaker)}</strong></p>
-      <div class="card-links">
-        <a href="${t.url}" target="_blank" rel="noopener" class="btn-link-out">
-          <span>📖 Read Talk on Church.org</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        </a>
+      <div class="card-info-wrap">
+        <div class="card-header">
+          <span class="badge badge-conf">${escapeHtml(t.conference_name)}</span>
+          <span class="conf-session">${escapeHtml(t.session || "General Session")}</span>
+        </div>
+        <div class="card-content-wrap">
+          <h3 class="card-title">“${escapeHtml(title)}”</h3>
+          <p class="card-author">👤 <strong>${escapeHtml(speaker)}</strong></p>
+        </div>
+        <div class="card-links">
+          <a href="${t.url}" target="_blank" rel="noopener" class="btn-link-out">
+            <span>📖 Read Talk</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
       </div>
       <div class="action-btn-row">
         <button class="btn-assign btn-highlight-assign" onclick="assignTalk(2, '${escapeJs(title)}', '${escapeJs(speaker)}', '${escapeJs(t.url)}')">Assign 2nd Talk</button>
         <button class="btn-assign btn-highlight-assign" onclick="assignTalk(3, '${escapeJs(title)}', '${escapeJs(speaker)}', '${escapeJs(t.url)}')">Assign 3rd Talk</button>
-        <button class="btn-assign btn-subtle" onclick="assignTalk(1, '${escapeJs(title)}', '${escapeJs(speaker)}', '${escapeJs(t.url)}')">1st Talk</button>
+        <button class="btn-assign btn-both-quorums" onclick="assignTalkToBothQuorums('${escapeJs(title)}', '${escapeJs(speaker)}', '${escapeJs(t.url)}')">Elder Quorum and Relief Society Lesson</button>
       </div>
     </div>
   `;
@@ -455,6 +498,36 @@ window.assignTalk = function(talkNum, title, speaker, url) {
   }
 
   saveAgendaUpdate(update, `✓ Assigned ${talkNum}${talkNum === 1 ? 'st' : (talkNum === 2 ? 'nd' : 'rd')} Talk: ${displayTitle}!`);
+};
+
+window.assignTalkToBothQuorums = function(title, speaker, url) {
+  if (!currentAgenda) return;
+  const displayTitle = speaker && speaker !== "Church Leader" ? `${title} (${speaker})` : title;
+  const classesJson = currentAgenda.classes_json || {};
+  classesJson.elders_quorum = {
+    ...(classesJson.elders_quorum || {}),
+    topic: displayTitle,
+    url: url,
+  };
+  classesJson.relief_society = {
+    ...(classesJson.relief_society || {}),
+    topic: displayTitle,
+    url: url,
+  };
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Assigned to Elders Quorum & Relief Society: “${title}”!`);
+};
+
+window.assignTalkToClass = function(className, title, speaker, url) {
+  if (!currentAgenda) return;
+  const displayTitle = speaker && speaker !== "Church Leader" ? `${title} (${speaker})` : title;
+  const classesJson = currentAgenda.classes_json || {};
+  classesJson[className] = {
+    ...(classesJson[className] || {}),
+    topic: displayTitle,
+    url: url,
+  };
+  const label = className === "elders_quorum" ? "Elders Quorum" : "Relief Society";
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Assigned General Conference Talk to ${label}: “${title}”!`);
 };
 
 /**
@@ -481,17 +554,21 @@ async function loadGospelPrinciples() {
 
     gpGrid.innerHTML = chapters.map(c => `
       <div class="resource-card gp-card">
-        <div class="card-header">
-          <span class="badge badge-gp">📖 Gospel Principles</span>
-          <span class="gp-chapter-pill">Chapter ${c.chapter_number}</span>
-        </div>
-        <h3 class="card-title">Chapter ${c.chapter_number}: ${escapeHtml(c.title)}</h3>
-        <p class="gp-desc">Ideal foundational topic for youth speakers and new member talks.</p>
-        <div class="card-links">
-          <a href="${c.url}" target="_blank" rel="noopener" class="btn-link-out">
-            <span>📖 Read Chapter on Church.org</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
+        <div class="card-info-wrap">
+          <div class="card-header">
+            <span class="badge badge-gp">📖 Gospel Principles</span>
+            <span class="gp-chapter-pill">Chapter ${c.chapter_number}</span>
+          </div>
+          <div class="card-content-wrap">
+            <h3 class="card-title">Chapter ${c.chapter_number}: ${escapeHtml(c.title)}</h3>
+            <p class="gp-desc">Foundational doctrine for youth & new member talks.</p>
+          </div>
+          <div class="card-links">
+            <a href="${c.url}" target="_blank" rel="noopener" class="btn-link-out">
+              <span>📖 Read Chapter</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+          </div>
         </div>
         <div class="action-btn-row">
           <button class="btn-assign btn-gp-assign" onclick="assignGospelPrinciple(${c.chapter_number}, '${escapeJs(c.title)}', '${escapeJs(c.url)}')">
@@ -500,6 +577,7 @@ async function loadGospelPrinciples() {
         </div>
       </div>
     `).join("");
+    applyViewMode(currentViewMode);
   } catch (err) {
     console.error("Error loading Gospel Principles:", err);
     if (gpGrid) gpGrid.innerHTML = `<div class="error-state">Failed to load Gospel Principles.</div>`;
@@ -581,19 +659,20 @@ async function loadCfm() {
     // Check if active Sunday date matches a lesson
     const matchedLesson = lessons.find(c => doesDateMatchRange(activeDate, c.date_range, c.year));
     if (matchedLesson && cfmActiveMatchBanner) {
-      const d = new Date(activeDate + "T00:00:00");
-      const sunDisplay = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const [y, m, d] = activeDate.split("-").map(Number);
+      const dObj = new Date(y, m - 1, d);
+      const sunDisplay = dObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
       cfmActiveMatchBanner.style.display = "flex";
       cfmActiveMatchBanner.innerHTML = `
         <div class="cfm-banner-left">
           <div class="cfm-banner-tag">★ SCHEDULED FOR ACTIVE SUNDAY (${escapeHtml(sunDisplay)})</div>
           <h3 class="cfm-banner-title">📅 ${escapeHtml(matchedLesson.date_range)}: “${escapeHtml(matchedLesson.title)}”</h3>
           ${matchedLesson.scriptures ? `<p class="cfm-banner-scriptures">📜 <strong>Reading:</strong> ${escapeHtml(matchedLesson.scriptures)}</p>` : ''}
-          <p class="cfm-banner-sub">⚡ 1st 25-Min: Sunday School (CFM) | 2nd 25-Min: Aaronic Priesthood & YW (FSY Lessons)</p>
+          <p class="cfm-banner-sub">⚡ Sunday School: Combined Adults & Combined Youth both learn from Come, Follow Me!</p>
         </div>
         <div class="cfm-banner-right">
-          <button class="btn btn-apply-all-banner" onclick="applyCfmToAllQuorums('${escapeJs(matchedLesson.date_range)}', '${escapeJs(matchedLesson.title)}', '${escapeJs(matchedLesson.scriptures)}', '${escapeJs(matchedLesson.url)}')">
-            ⚡ Apply to ALL Quorums & Classes
+          <button class="btn btn-apply-all-banner" onclick="applyCfmToBothSundaySchools('${escapeJs(matchedLesson.date_range)}', '${escapeJs(matchedLesson.title)}', '${escapeJs(matchedLesson.scriptures)}', '${escapeJs(matchedLesson.url)}')">
+            ⚡ Apply to ALL (Adult & Youth Sunday School)
           </button>
           <a href="${matchedLesson.url}" target="_blank" rel="noopener" class="btn-banner-church-link">
             Open on Church.org ↗
@@ -608,29 +687,33 @@ async function loadCfm() {
       const isDateMatch = activeDate && c.date_range && doesDateMatchRange(activeDate, c.date_range, c.year);
       return `
         <div class="resource-card cfm-card ${isDateMatch ? 'highlight-active-week' : ''}">
-          <div class="card-header">
-            <span class="badge badge-cfm">${escapeHtml(c.book_title)}</span>
-            <span class="cfm-date-pill">📅 ${escapeHtml(c.date_range || `Week ${c.week_number}`)}</span>
-            ${isDateMatch ? '<span class="badge-matched">★ Scheduled for Active Sunday</span>' : ''}
-          </div>
-          <h3 class="card-title">${escapeHtml(c.title)}</h3>
-          ${c.scriptures ? `<p class="cfm-scriptures">📜 <strong>Reading:</strong> ${escapeHtml(c.scriptures)}</p>` : ''}
-          <div class="card-links">
-            <a href="${c.url}" target="_blank" rel="noopener" class="btn-link-out">
-              <span>📖 Open Lesson on Church.org</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-            </a>
+          <div class="card-info-wrap">
+            <div class="card-header">
+              <span class="badge badge-cfm">${escapeHtml(c.book_title)}</span>
+              <span class="cfm-date-pill">📅 ${escapeHtml(c.date_range || `Week ${c.week_number}`)}</span>
+              ${isDateMatch ? '<span class="badge-matched">★ Scheduled for Active Sunday</span>' : ''}
+            </div>
+            <div class="card-content-wrap">
+              <h3 class="card-title">${escapeHtml(c.title)}</h3>
+              ${c.scriptures ? `<p class="cfm-scriptures">📜 <strong>Reading:</strong> ${escapeHtml(c.scriptures)}</p>` : ''}
+            </div>
+            <div class="card-links">
+              <a href="${c.url}" target="_blank" rel="noopener" class="btn-link-out">
+                <span>📖 Read Lesson</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>
           </div>
           <div class="action-btn-row">
-            <button class="btn-assign btn-highlight-assign" onclick="applyCfmToAllQuorums('${escapeJs(c.date_range)}', '${escapeJs(c.title)}', '${escapeJs(c.scriptures)}', '${escapeJs(c.url)}')">⚡ Apply to ALL Quorums</button>
-            <button class="btn-assign" onclick="assignCfm('sunday_school', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Sunday School</button>
-            <button class="btn-assign" onclick="assignCfm('elders_quorum', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Elders Quorum</button>
-            <button class="btn-assign" onclick="assignCfm('relief_society', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Relief Society</button>
+            <button class="btn-assign btn-highlight-assign" onclick="applyCfmToBothSundaySchools('${escapeJs(c.date_range)}', '${escapeJs(c.title)}', '${escapeJs(c.scriptures)}', '${escapeJs(c.url)}')">⚡ Apply to All</button>
+            <button class="btn-assign" onclick="assignCfm('sunday_school', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Adult Sunday School</button>
+            <button class="btn-assign" onclick="assignCfm('sunday_school_youth', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Youth Sunday School</button>
             <button class="btn-assign" onclick="assignCfm('primary', '${escapeJs(c.date_range)}: ${escapeJs(c.title)}', '${escapeJs(c.url)}')">Primary</button>
           </div>
         </div>
       `;
     }).join("");
+    applyViewMode(currentViewMode);
   } catch (err) {
     console.error("Error loading CFM lessons:", err);
     cfmGrid.innerHTML = `<div class="error-state">Failed to load lessons.</div>`;
@@ -647,7 +730,8 @@ window.assignCfm = function(className, topic, url) {
   };
 
   const labelMap = {
-    sunday_school: "Sunday School",
+    sunday_school: "Combined Adults (Sunday School)",
+    sunday_school_youth: "Combined Youth (Sunday School)",
     elders_quorum: "Elders Quorum",
     relief_society: "Relief Society",
     young_men: "Young Men",
@@ -655,10 +739,10 @@ window.assignCfm = function(className, topic, url) {
     primary: "Primary"
   };
 
-  saveAgendaUpdate({ classes_json: classesJson }, `✓ Applied Come, Follow Me lesson to ${labelMap[className] || className}!`);
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Applied Come, Follow Me to ${labelMap[className] || className}!`);
 };
 
-window.applyCfmToAllQuorums = async function(dateRange, title, scriptures, url) {
+window.applyCfmToBothSundaySchools = function(dateRange, title, scriptures, url) {
   if (!currentAgenda) return;
   const fullTopic = scriptures 
     ? `${dateRange}: “${title}” (${scriptures})` 
@@ -666,80 +750,124 @@ window.applyCfmToAllQuorums = async function(dateRange, title, scriptures, url) 
   const shortTopic = `${dateRange}: “${title}”`;
 
   const classesJson = currentAgenda.classes_json || {};
-  
-  // 1st 25-minute class: Sunday School
-  classesJson.sunday_school = {
-    ...(classesJson.sunday_school || {}),
-    topic: fullTopic,
-    url: url,
-  };
-  
-  // Primary
-  classesJson.primary = {
-    ...(classesJson.primary || {}),
-    topic: shortTopic,
-    url: url,
-  };
+  classesJson.sunday_school = { ...(classesJson.sunday_school || {}), topic: fullTopic, url };
+  classesJson.sunday_school_youth = { ...(classesJson.sunday_school_youth || {}), topic: fullTopic, url };
+  classesJson.primary = { ...(classesJson.primary || {}), topic: shortTopic, url };
 
-  // Adult Quorums (Elders Quorum & Relief Society)
-  classesJson.elders_quorum = {
-    ...(classesJson.elders_quorum || {}),
-    topic: classesJson.elders_quorum?.topic || shortTopic,
-    url: classesJson.elders_quorum?.url || url,
-  };
-  classesJson.relief_society = {
-    ...(classesJson.relief_society || {}),
-    topic: classesJson.relief_society?.topic || shortTopic,
-    url: classesJson.relief_society?.url || url,
-  };
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Applied Come, Follow Me to Combined Adults, Combined Youth & Primary!`);
+};
 
-  // 2nd 25-minute class: Young Men & Young Women (FSY Sunday Lessons)
+/**
+ * Fetch and Render FSY Sunday Lessons (Young Men & Young Women)
+ */
+async function loadFsy() {
+  if (!fsyGrid) return;
+  fsyGrid.innerHTML = `<div class="loading-state">Loading FSY Sunday lessons...</div>`;
+  const q = fsySearchInput ? fsySearchInput.value.trim().toLowerCase() : "";
+  const month = fsyMonthSelect ? fsyMonthSelect.value : "";
+  const org = fsyOrgSelect ? fsyOrgSelect.value : "all";
+
+  let url = `/api/fsy-lessons?year=2026`;
+  if (month) url += `&month=${month}`;
+  if (org && org !== "all") url += `&org=${org}`;
+
   try {
-    const d = new Date(activeDate + "T00:00:00");
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1;
-    const day = d.getDate();
-    const sundayNum = Math.ceil(day / 7);
+    const res = await fetch(url);
+    const data = await res.json();
+    let lessons = data.lessons || [];
 
-    const fsyRes = await fetch(`/api/fsy-lessons?year=${year}&month=${month}&sunday=${sundayNum}`);
-    if (fsyRes.ok) {
-      const fsyData = await fsyRes.json();
-      const fsyLessons = fsyData.lessons || [];
-
-      // Find Young Men lesson
-      const ymLesson = fsyLessons.find(l => l.organization === "young_men") || fsyLessons.find(l => l.organization === "both");
-      if (ymLesson) {
-        classesJson.young_men = {
-          ...(classesJson.young_men || {}),
-          topic: ymLesson.title,
-          url: ymLesson.url,
-        };
-      } else {
-        classesJson.young_men = { ...(classesJson.young_men || {}), topic: shortTopic, url };
-      }
-
-      // Find Young Women lesson
-      const ywLesson = fsyLessons.find(l => l.organization === "young_women") || fsyLessons.find(l => l.organization === "both");
-      if (ywLesson) {
-        classesJson.young_women = {
-          ...(classesJson.young_women || {}),
-          topic: ywLesson.title,
-          url: ywLesson.url,
-        };
-      } else {
-        classesJson.young_women = { ...(classesJson.young_women || {}), topic: shortTopic, url };
-      }
-    } else {
-      classesJson.young_men = { ...(classesJson.young_men || {}), topic: shortTopic, url };
-      classesJson.young_women = { ...(classesJson.young_women || {}), topic: shortTopic, url };
+    if (q) {
+      lessons = lessons.filter(l => 
+        l.title.toLowerCase().includes(q) || 
+        (l.description && l.description.toLowerCase().includes(q))
+      );
     }
-  } catch (err) {
-    console.warn("Could not fetch FSY lesson:", err);
-    classesJson.young_men = { ...(classesJson.young_men || {}), topic: shortTopic, url };
-    classesJson.young_women = { ...(classesJson.young_women || {}), topic: shortTopic, url };
-  }
 
-  saveAgendaUpdate({ classes_json: classesJson }, `✓ Applied Come, Follow Me to Sunday School & Primary, and FSY Sunday Lessons to Young Men & Young Women!`);
+    if (fsyResultsCount) {
+      fsyResultsCount.textContent = `Showing ${lessons.length} FSY Sunday lessons for Young Men & Young Women`;
+    }
+
+    if (lessons.length === 0) {
+      fsyGrid.innerHTML = `<div class="empty-state">No FSY lessons found matching your filters.</div>`;
+      return;
+    }
+
+    const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+    fsyGrid.innerHTML = lessons.map(l => {
+      const monthLabel = monthNames[l.month] || `Month ${l.month}`;
+      let sundayLabel = `${l.sunday_number}th Sunday`;
+      if (l.sunday_number === 1) sundayLabel = "1st Sunday (Fast Sunday)";
+      else if (l.sunday_number === 2) sundayLabel = "2nd Sunday";
+      else if (l.sunday_number === 3) sundayLabel = "3rd Sunday";
+      else if (l.sunday_number === 4) sundayLabel = "4th Sunday (Quorums/Classes)";
+      else if (l.sunday_number === 5) sundayLabel = "5th Sunday (Combined Activity)";
+
+      let orgText = "Young Men & Young Women";
+      if (l.organization === "young_men") {
+        orgText = "Aaronic Priesthood / Young Men";
+      } else if (l.organization === "young_women") {
+        orgText = "Young Women";
+      }
+
+      return `
+        <div class="resource-card fsy-card">
+          <div class="card-info-wrap">
+            <div class="card-header">
+              <span class="badge badge-fsy">${escapeHtml(orgText)}</span>
+              <span class="conf-session">📅 ${escapeHtml(monthLabel)} 2026 • ${escapeHtml(sundayLabel)}</span>
+            </div>
+            <div class="card-content-wrap">
+              <h3 class="card-title">${escapeHtml(l.title)}</h3>
+              ${l.description ? `<p class="card-author">${escapeHtml(l.description)}</p>` : ''}
+            </div>
+            <div class="card-links">
+              <a href="${l.url}" target="_blank" rel="noopener" class="btn-link-out">
+                <span>🌟 FSY Magazine</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="action-btn-row">
+            ${l.organization === 'young_men' ? `
+              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('young_men', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Men</button>
+            ` : l.organization === 'young_women' ? `
+              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('young_women', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Assign to Young Women</button>
+            ` : `
+              <button class="btn-assign btn-highlight-assign" onclick="assignFsy('both', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">⚡ Assign Both (YM & YW)</button>
+              <button class="btn-assign" onclick="assignFsy('young_men', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Young Men</button>
+              <button class="btn-assign" onclick="assignFsy('young_women', '${escapeJs(l.title)}', '${escapeJs(l.url)}')">Young Women</button>
+            `}
+          </div>
+        </div>
+      `;
+    }).join("");
+    applyViewMode(currentViewMode);
+  } catch (err) {
+    console.error("Error loading FSY lessons:", err);
+    if (fsyGrid) fsyGrid.innerHTML = `<div class="error-state">Failed to load FSY lessons.</div>`;
+  }
+}
+
+window.assignFsy = function(targetOrg, title, url) {
+  if (!currentAgenda) return;
+  const classesJson = currentAgenda.classes_json || {};
+  if (targetOrg === "both" || targetOrg === "young_men") {
+    classesJson.young_men = {
+      ...(classesJson.young_men || {}),
+      topic: title,
+      url: url,
+    };
+  }
+  if (targetOrg === "both" || targetOrg === "young_women") {
+    classesJson.young_women = {
+      ...(classesJson.young_women || {}),
+      topic: title,
+      url: url,
+    };
+  }
+  const label = targetOrg === "both" ? "Young Men & Young Women" : (targetOrg === "young_men" ? "Young Men" : "Young Women");
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Assigned FSY Magazine Lesson to ${label}!`);
 };
 
 /**
@@ -793,12 +921,15 @@ function initEvents() {
       const tabId = btn.dataset.tab;
       if (tabId === "hymns") {
         document.getElementById("tabHymns").classList.add("active");
-      } else if (tabId === "talks") {
-        document.getElementById("tabTalks").classList.add("active");
       } else if (tabId === "gp") {
         document.getElementById("tabGp").classList.add("active");
+      } else if (tabId === "talks") {
+        document.getElementById("tabTalks").classList.add("active");
       } else if (tabId === "cfm") {
         document.getElementById("tabCfm").classList.add("active");
+      } else if (tabId === "fsy") {
+        document.getElementById("tabFsy").classList.add("active");
+        loadFsy();
       }
     });
   });
@@ -865,17 +996,45 @@ function initEvents() {
   });
 
   cfmYearSelect.addEventListener("change", loadCfm);
+
+  // FSY filters
+  if (fsySearchInput) {
+    fsySearchInput.addEventListener("input", () => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(loadFsy, 250);
+    });
+  }
+
+  if (clearFsySearch) {
+    clearFsySearch.addEventListener("click", () => {
+      if (fsySearchInput) fsySearchInput.value = "";
+      loadFsy();
+    });
+  }
+
+  if (fsyMonthSelect) fsyMonthSelect.addEventListener("change", loadFsy);
+  if (fsyOrgSelect) fsyOrgSelect.addEventListener("change", loadFsy);
+
+  // View Mode Toggles (Grid vs List View)
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-view-toggle");
+    if (btn && btn.dataset.view) {
+      applyViewMode(btn.dataset.view);
+    }
+  });
 }
 
 // Initial Boot
 document.addEventListener("DOMContentLoaded", () => {
   initEvents();
+  applyViewMode(currentViewMode);
   const initDate = getInitialSunday();
   loadAgendaForDate(initDate);
   loadHymns();
   loadTalks();
   loadGospelPrinciples();
   loadCfm();
+  loadFsy();
 
   // If URL specified target tab
   const params = new URLSearchParams(window.location.search);

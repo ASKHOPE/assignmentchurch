@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/style.css?v=2">
 </head>
 <body class="study-planner-body">
   <div class="app-shell">
@@ -58,34 +58,117 @@
         </div>
         <a href="/" id="viewInAgendaLink" class="btn-view-agenda">View in Full Agenda →</a>
       </div>
-      <div class="curated-grid">
-        <div class="curated-pill" id="pillOpeningHymn">
-          <span class="pill-label">Opening Hymn</span>
-          <span class="pill-val" id="valOpeningHymn">None selected</span>
+
+      <div class="curated-sections-container">
+        <!-- Section 1: All 4 Hymns -->
+        <div class="overview-subgroup">
+          <div class="subgroup-heading">
+            <span class="subgroup-icon">🎼</span>
+            <span class="subgroup-title">Sacrament Music (All 4 Hymns)</span>
+          </div>
+          <div class="curated-grid hymns-grid-4">
+            <div class="curated-pill" id="pillOpeningHymn">
+              <span class="pill-label">Opening Hymn</span>
+              <span class="pill-val" id="valOpeningHymn">None selected</span>
+            </div>
+            <div class="curated-pill" id="pillSacramentHymn">
+              <span class="pill-label">Sacrament Hymn</span>
+              <span class="pill-val" id="valSacramentHymn">None selected</span>
+            </div>
+            <div class="curated-pill" id="pillInterludeHymn">
+              <span class="pill-label">Intermediate Hymn</span>
+              <span class="pill-val" id="valInterludeHymn">None selected</span>
+            </div>
+            <div class="curated-pill" id="pillClosingHymn">
+              <span class="pill-label">Closing Hymn</span>
+              <span class="pill-val" id="valClosingHymn">None selected</span>
+            </div>
+          </div>
         </div>
-        <div class="curated-pill" id="pillSacramentHymn">
-          <span class="pill-label">Sacrament Hymn</span>
-          <span class="pill-val" id="valSacramentHymn">None selected</span>
+
+        <!-- Section 2: Sacrament Talks -->
+        <div class="overview-subgroup">
+          <div class="subgroup-heading">
+            <span class="subgroup-icon">🎙️</span>
+            <span class="subgroup-title">Sacrament Talks</span>
+          </div>
+          <div class="curated-grid talks-grid-3">
+            <div class="curated-pill" id="pillTalk1">
+              <span class="pill-label">1st Talk (Youth)</span>
+              <span class="pill-val" id="valTalk1">No topic set</span>
+            </div>
+            <div class="curated-pill" id="pillTalk2">
+              <span class="pill-label">2nd Talk</span>
+              <span class="pill-val" id="valTalk2">No topic set</span>
+            </div>
+            <div class="curated-pill" id="pillTalk3">
+              <span class="pill-label">3rd Talk</span>
+              <span class="pill-val" id="valTalk3">No topic set</span>
+            </div>
+          </div>
         </div>
-        <div class="curated-pill" id="pillClosingHymn">
-          <span class="pill-label">Closing Hymn</span>
-          <span class="pill-val" id="valClosingHymn">None selected</span>
-        </div>
-        <div class="curated-pill" id="pillTalk1">
-          <span class="pill-label">1st Talk (Youth)</span>
-          <span class="pill-val" id="valTalk1">No topic set</span>
-        </div>
-        <div class="curated-pill" id="pillTalk2">
-          <span class="pill-label">2nd Talk</span>
-          <span class="pill-val" id="valTalk2">No topic set</span>
-        </div>
-        <div class="curated-pill" id="pillTalk3">
-          <span class="pill-label">3rd Talk</span>
-          <span class="pill-val" id="valTalk3">No topic set</span>
-        </div>
-        <div class="curated-pill wide" id="pillCfm">
-          <span class="pill-label">Come, Follow Me</span>
-          <span class="pill-val" id="valCfm">No CFM lesson applied</span>
+
+        <!-- Section 3: Second Hour Classes & Quorums -->
+        <div class="overview-subgroup">
+          <div class="subgroup-heading">
+            <span class="subgroup-icon">📖</span>
+            <span class="subgroup-title">Second Hour Classes & Quorum Lessons</span>
+          </div>
+          <div class="curated-grid classes-grid-6">
+            <!-- 1. CFM Combined Adults -->
+            <div class="curated-pill" id="pillCfmAdults">
+              <div class="pill-header-row">
+                <span class="pill-label">Come, Follow Me (Combined Adults)</span>
+                <span class="pill-tag-mini">Sunday School</span>
+              </div>
+              <span class="pill-val" id="valCfmAdults">No lesson set</span>
+            </div>
+
+            <!-- 2. CFM Combined Youth -->
+            <div class="curated-pill" id="pillCfmYouth">
+              <div class="pill-header-row">
+                <span class="pill-label">Come, Follow Me (Combined Youth)</span>
+                <span class="pill-tag-mini">Sunday School</span>
+              </div>
+              <span class="pill-val" id="valCfmYouth">No lesson set</span>
+            </div>
+
+            <!-- 3. GC Elders Quorum -->
+            <div class="curated-pill" id="pillEq">
+              <div class="pill-header-row">
+                <span class="pill-label">General Conference (Elders Quorum)</span>
+                <span class="pill-tag-mini">2nd & 4th Sun</span>
+              </div>
+              <span class="pill-val" id="valEq">No talk set</span>
+            </div>
+
+            <!-- 4. GC Relief Society -->
+            <div class="curated-pill" id="pillRs">
+              <div class="pill-header-row">
+                <span class="pill-label">General Conference (Relief Society)</span>
+                <span class="pill-tag-mini">2nd & 4th Sun</span>
+              </div>
+              <span class="pill-val" id="valRs">No talk set</span>
+            </div>
+
+            <!-- 5. FSY Young Men -->
+            <div class="curated-pill" id="pillYm">
+              <div class="pill-header-row">
+                <span class="pill-label">FSY Magazine (Young Men)</span>
+                <span class="pill-tag-mini">Priesthood</span>
+              </div>
+              <span class="pill-val" id="valYm">No lesson set</span>
+            </div>
+
+            <!-- 6. FSY Young Women -->
+            <div class="curated-pill" id="pillYw">
+              <div class="pill-header-row">
+                <span class="pill-label">FSY Magazine (Young Women)</span>
+                <span class="pill-tag-mini">YW Classes</span>
+              </div>
+              <span class="pill-val" id="valYw">No lesson set</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -96,17 +179,21 @@
         <span class="tab-icon">🎵</span>
         <span class="tab-text">Hymns & Music</span>
       </button>
-      <button class="study-tab" data-tab="talks">
-        <span class="tab-icon">🎙️</span>
-        <span class="tab-text">General Conference (2nd & 3rd Talks)</span>
-      </button>
       <button class="study-tab" data-tab="gp">
         <span class="tab-icon">📖</span>
         <span class="tab-text">Gospel Principles (1st Talk - Youth)</span>
       </button>
+      <button class="study-tab" data-tab="talks">
+        <span class="tab-icon">🎙️</span>
+        <span class="tab-text">General Conference (2nd & 3rd Talks, EQ & RS)</span>
+      </button>
       <button class="study-tab" data-tab="cfm">
         <span class="tab-icon">📜</span>
-        <span class="tab-text">Come, Follow Me (Quorums)</span>
+        <span class="tab-text">Come, Follow Me (Combined Adults & Combined Youth)</span>
+      </button>
+      <button class="study-tab" data-tab="fsy">
+        <span class="tab-icon">🌟</span>
+        <span class="tab-text">FSY Lessons (Young Men & Young Women)</span>
       </button>
     </div>
 
@@ -128,7 +215,19 @@
         </div>
       </div>
 
-      <div class="results-stats" id="hymnResultsCount">Showing hymns...</div>
+      <div class="results-bar">
+        <div class="results-stats" id="hymnResultsCount">Showing hymns...</div>
+        <div class="view-mode-toggle" role="group" aria-label="Hymns view mode">
+          <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Grid</span>
+          </button>
+          <button type="button" class="btn-view-toggle" data-view="list" title="List View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>List</span>
+          </button>
+        </div>
+      </div>
       <div class="cards-grid" id="hymnsGrid">
         <!-- Dynamically rendered hymn cards -->
       </div>
@@ -183,7 +282,19 @@
         </div>
       </div>
 
-      <div class="results-stats" id="talkResultsCount">Showing conference talks...</div>
+      <div class="results-bar">
+        <div class="results-stats" id="talkResultsCount">Showing conference talks...</div>
+        <div class="view-mode-toggle" role="group" aria-label="Talks view mode">
+          <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Grid</span>
+          </button>
+          <button type="button" class="btn-view-toggle" data-view="list" title="List View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>List</span>
+          </button>
+        </div>
+      </div>
       <div id="talksGridContainer">
         <div class="cards-grid" id="talksGrid">
           <!-- Dynamically rendered talk cards -->
@@ -203,13 +314,25 @@
         </div>
       </div>
 
-      <div class="results-stats" id="gpResultsCount">Showing 47 chapters for 1st Talk (Youth)...</div>
+      <div class="results-bar">
+        <div class="results-stats" id="gpResultsCount">Showing 47 chapters for 1st Talk (Youth)...</div>
+        <div class="view-mode-toggle" role="group" aria-label="Gospel Principles view mode">
+          <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Grid</span>
+          </button>
+          <button type="button" class="btn-view-toggle" data-view="list" title="List View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>List</span>
+          </button>
+        </div>
+      </div>
       <div class="cards-grid" id="gpGrid">
         <!-- Dynamically rendered Gospel Principles cards -->
       </div>
     </section>
 
-    <!-- TAB 4: COME, FOLLOW ME -->
+    <!-- TAB 4: COME, FOLLOW ME (COMBINED ADULTS & COMBINED YOUTH) -->
     <section class="tab-panel" id="tabCfm">
       <div class="filter-controls">
         <div class="search-input-wrap">
@@ -228,11 +351,67 @@
         </div>
       </div>
 
-      <div class="results-stats" id="cfmResultsCount">Showing lessons...</div>
+      <div class="results-bar">
+        <div class="results-stats" id="cfmResultsCount">Showing lessons...</div>
+        <div class="view-mode-toggle" role="group" aria-label="Come Follow Me view mode">
+          <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Grid</span>
+          </button>
+          <button type="button" class="btn-view-toggle" data-view="list" title="List View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>List</span>
+          </button>
+        </div>
+      </div>
       <!-- Scheduled CFM Highlight Banner -->
       <div id="cfmActiveMatchBanner" class="cfm-scheduled-banner" style="display: none;"></div>
       <div class="cfm-timeline-grid" id="cfmGrid">
         <!-- Dynamically rendered CFM lessons -->
+      </div>
+    </section>
+
+    <!-- TAB 5: FSY LESSONS (YOUNG MEN & YOUNG WOMEN) -->
+    <section class="tab-panel" id="tabFsy">
+      <div class="filter-controls">
+        <div class="search-input-wrap">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input type="text" id="fsySearchInput" placeholder="Search FSY Sunday lessons (e.g. Priesthood, Covenant, Word of Wisdom)...">
+          <button class="clear-search" id="clearFsySearch">✕</button>
+        </div>
+        <div class="dropdown-filter-row">
+          <select id="fsyMonthSelect" class="filter-select">
+            <option value="">All Months (Sept–Dec 2026)</option>
+            <option value="9">September 2026</option>
+            <option value="10">October 2026</option>
+            <option value="11">November 2026</option>
+            <option value="12">December 2026</option>
+          </select>
+          <select id="fsyOrgSelect" class="filter-select">
+            <option value="all">All Quorums & Classes</option>
+            <option value="young_men">Aaronic Priesthood / Young Men</option>
+            <option value="young_women">Young Women</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="results-bar">
+        <div class="results-stats" id="fsyResultsCount">Showing FSY lessons from For the Strength of Youth Magazine...</div>
+        <div class="view-mode-toggle" role="group" aria-label="FSY view mode">
+          <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Grid</span>
+          </button>
+          <button type="button" class="btn-view-toggle" data-view="list" title="List View">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <span>List</span>
+          </button>
+        </div>
+      </div>
+      <div class="cards-grid" id="fsyGrid">
+        <!-- Dynamically rendered FSY lesson cards -->
       </div>
     </section>
 
@@ -241,6 +420,6 @@
   <!-- Toast Notifications -->
   <div id="studyToast" class="study-toast"></div>
 
-  <script src="/study.js"></script>
+  <script src="/study.js?v=2"></script>
 </body>
 </html>
