@@ -10,5 +10,12 @@
     "directory": "./public",
     "binding": "ASSETS",
     "run_worker_first": true
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "assignmentchurch-db",
+      "database_id": "a36fdf13-099e-4031-8346-fe4057298fa0"
+    }
+  ]
 }
