@@ -49,8 +49,8 @@ describe("Agenda Utilities", () => {
     expect(getNextSunday("2026-09-27")).toBe("2026-10-04");
   });
 
-  test("formatDisplayDate formats nicely", () => {
-    expect(formatDisplayDate("2026-09-13")).toBe("13 September 2026");
+  test("formatDisplayDate formats as DD/MM/YYYY", () => {
+    expect(formatDisplayDate("2026-09-13")).toBe("13/09/2026");
   });
 
   test("createDefaultAgenda produces valid structure matching spreadsheet", () => {

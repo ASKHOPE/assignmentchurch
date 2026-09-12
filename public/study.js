@@ -112,6 +112,7 @@ const fsyMonthSelect = document.getElementById("fsyMonthSelect");
 const fsyOrgSelect = document.getElementById("fsyOrgSelect");
 const fsyGrid = document.getElementById("fsyGrid");
 const fsyResultsCount = document.getElementById("fsyResultsCount");
+const fsyActiveMatchBanner = document.getElementById("fsyActiveMatchBanner");
 
 // Toast
 const studyToast = document.getElementById("studyToast");
@@ -133,6 +134,17 @@ function formatDateToISO(date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+/**
+ * Formats date as DD/MM/YYYY
+ */
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return "";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const day = String(d).padStart(2, "0");
+  const month = String(m).padStart(2, "0");
+  return `${day}/${month}/${y}`;
 }
 
 /**
@@ -185,8 +197,9 @@ async function loadAgendaForDate(dateStr) {
     const json = await res.json();
     currentAgenda = json.data;
     renderOverviewCard();
-    // Refresh CFM matching for this new date
+    // Refresh CFM & FSY matching for this new date
     loadCfm();
+    loadFsy();
   } catch (err) {
     console.error("Error loading agenda:", err);
     showToast("Could not load agenda for " + dateStr, "error");
@@ -212,9 +225,7 @@ function renderPill(el, val, url, emptyText = "None selected") {
  */
 function renderOverviewCard() {
   if (!currentAgenda) return;
-  const [y, m, d] = activeDate.split("-").map(Number);
-  const dObj = new Date(y, m - 1, d);
-  const dateFormatted = dObj.toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" });
+  const dateFormatted = formatDisplayDate(activeDate);
   overviewSundayTitle.textContent = `Sunday Plan: ${dateFormatted} (${currentAgenda.week_label || "Sunday"})`;
 
   // 1. All 4 Hymns
@@ -659,9 +670,7 @@ async function loadCfm() {
     // Check if active Sunday date matches a lesson
     const matchedLesson = lessons.find(c => doesDateMatchRange(activeDate, c.date_range, c.year));
     if (matchedLesson && cfmActiveMatchBanner) {
-      const [y, m, d] = activeDate.split("-").map(Number);
-      const dObj = new Date(y, m - 1, d);
-      const sunDisplay = dObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const sunDisplay = formatDisplayDate(activeDate);
       cfmActiveMatchBanner.style.display = "flex";
       cfmActiveMatchBanner.innerHTML = `
         <div class="cfm-banner-left">
@@ -789,12 +798,50 @@ async function loadFsy() {
 
     if (lessons.length === 0) {
       fsyGrid.innerHTML = `<div class="empty-state">No FSY lessons found matching your filters.</div>`;
+      if (fsyActiveMatchBanner) fsyActiveMatchBanner.style.display = "none";
       return;
+    }
+
+    // Match active Sunday for FSY auto-fill feature
+    const [y, m, d] = activeDate.split("-").map(Number);
+    const activeMonth = m;
+    const activeSundayNum = Math.ceil(d / 7);
+
+    const matchedFsy = lessons.find(l => l.month === activeMonth && l.sunday_number === activeSundayNum);
+    if (matchedFsy && fsyActiveMatchBanner) {
+      const sunDisplay = formatDisplayDate(activeDate);
+      let sundayOrdinal = `${activeSundayNum}th Sunday`;
+      if (activeSundayNum === 1) sundayOrdinal = "1st Sunday (Fast Sunday)";
+      else if (activeSundayNum === 2) sundayOrdinal = "2nd Sunday";
+      else if (activeSundayNum === 3) sundayOrdinal = "3rd Sunday";
+      else if (activeSundayNum === 4) sundayOrdinal = "4th Sunday (Quorums/Classes)";
+      else if (activeSundayNum === 5) sundayOrdinal = "5th Sunday (Combined Activity)";
+
+      fsyActiveMatchBanner.style.display = "flex";
+      fsyActiveMatchBanner.innerHTML = `
+        <div class="fsy-banner-left">
+          <div class="fsy-banner-tag">★ SCHEDULED FOR ACTIVE SUNDAY (${escapeHtml(sunDisplay)} • ${escapeHtml(sundayOrdinal)})</div>
+          <h3 class="fsy-banner-title">🌟 ${escapeHtml(matchedFsy.title)}</h3>
+          ${matchedFsy.description ? `<p class="fsy-banner-desc">${escapeHtml(matchedFsy.description)}</p>` : ''}
+          <p class="fsy-banner-sub">⚡ Aaronic Priesthood & Young Women learn from this FSY Magazine topic.</p>
+        </div>
+        <div class="fsy-banner-right">
+          <button class="btn btn-apply-all-banner btn-fsy-autofill-banner" onclick="autoFillFsy('${escapeJs(matchedFsy.title)}', '${escapeJs(matchedFsy.url)}')">
+            ⚡ Auto-Fill YM & YW Lessons
+          </button>
+          <a href="${matchedFsy.url}" target="_blank" rel="noopener" class="btn-banner-church-link">
+            Open FSY Magazine ↗
+          </a>
+        </div>
+      `;
+    } else if (fsyActiveMatchBanner) {
+      fsyActiveMatchBanner.style.display = "none";
     }
 
     const monthNames = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
 
     fsyGrid.innerHTML = lessons.map(l => {
+      const isDateMatch = (l.month === activeMonth && l.sunday_number === activeSundayNum);
       const monthLabel = monthNames[l.month] || `Month ${l.month}`;
       let sundayLabel = `${l.sunday_number}th Sunday`;
       if (l.sunday_number === 1) sundayLabel = "1st Sunday (Fast Sunday)";
@@ -811,11 +858,12 @@ async function loadFsy() {
       }
 
       return `
-        <div class="resource-card fsy-card">
+        <div class="resource-card fsy-card ${isDateMatch ? 'highlight-active-week' : ''}">
           <div class="card-info-wrap">
             <div class="card-header">
               <span class="badge badge-fsy">${escapeHtml(orgText)}</span>
               <span class="conf-session">📅 ${escapeHtml(monthLabel)} 2026 • ${escapeHtml(sundayLabel)}</span>
+              ${isDateMatch ? '<span class="badge-matched">★ Scheduled for Active Sunday</span>' : ''}
             </div>
             <div class="card-content-wrap">
               <h3 class="card-title">${escapeHtml(l.title)}</h3>
@@ -848,6 +896,14 @@ async function loadFsy() {
     if (fsyGrid) fsyGrid.innerHTML = `<div class="error-state">Failed to load FSY lessons.</div>`;
   }
 }
+
+window.autoFillFsy = function(title, url) {
+  if (!currentAgenda) return;
+  const classesJson = currentAgenda.classes_json || {};
+  classesJson.young_men = { ...(classesJson.young_men || {}), topic: title, url: url };
+  classesJson.young_women = { ...(classesJson.young_women || {}), topic: title, url: url };
+  saveAgendaUpdate({ classes_json: classesJson }, `✓ Auto-filled FSY Lesson to Young Men & Young Women: “${title}”!`);
+};
 
 window.assignFsy = function(targetOrg, title, url) {
   if (!currentAgenda) return;

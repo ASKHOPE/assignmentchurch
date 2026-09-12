@@ -54,7 +54,7 @@ describe("WhatsApp Formatter Engine", () => {
   test("formatFullAgendaWhatsApp produces complete formatted message with organizations and URLs", () => {
     const text = formatFullAgendaWhatsApp(sampleAgenda);
     expect(text).toContain("⛪ *WARD SUNDAY AGENDA*");
-    expect(text).toContain("13 September 2026");
+    expect(text).toContain("13/09/2026");
     expect(text).toContain("Brother Clark");
     expect(text).toContain("Stake High Councilor");
     expect(text).toContain("Youth - Young Men");
@@ -108,7 +108,7 @@ describe("WhatsApp Formatter Engine", () => {
     expect(reminder).toContain("Sahitya");
     expect(reminder).toContain("Relief Society Teacher");
     expect(reminder).toContain("Watch Ye Therefore, and Pray Always");
-    expect(reminder).toContain("13 September 2026");
+    expect(reminder).toContain("13/09/2026");
   });
 
   test("formatFullAgendaWhatsApp and formatSacramentWhatsApp include 3rd talk organization when customized", () => {

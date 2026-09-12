@@ -128,15 +128,14 @@ export function formatISODate(date: Date): string {
 }
 
 /**
- * Formats date nicely e.g. "13 September 2026".
+ * Formats date as DD/MM/YYYY e.g. "13/09/2026".
  */
 export function formatDisplayDate(dateInput: string | Date): string {
   const d = typeof dateInput === "string" ? parseISODate(dateInput) : dateInput;
-  return d.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
 /**

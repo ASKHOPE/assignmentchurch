@@ -3010,9 +3010,102 @@ body {
   border-color: #4f46e5;
 }
 
+.btn-outline-fsy {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fdba74;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-fsy:hover {
+  background: #f97316;
+  color: #ffffff;
+  border-color: #f97316;
+}
+
 .card-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* FSY Scheduled Banner */
+.fsy-scheduled-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(67, 20, 7, 0.88), rgba(124, 45, 18, 0.78));
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.18);
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.fsy-banner-left {
+  flex: 1;
+  min-width: 260px;
+}
+
+.fsy-banner-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #f97316;
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.fsy-banner-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.fsy-banner-desc {
+  margin: 0 0 4px;
+  font-size: 0.84rem;
+  color: #fdba74;
+}
+
+.fsy-banner-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.fsy-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-fsy-autofill-banner {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.4) !important;
+  color: #ffffff !important;
+}
+
+.btn-fsy-autofill-banner:hover {
+  box-shadow: 0 6px 18px rgba(234, 88, 12, 0.6) !important;
+}
+
+.fsy-card.highlight-active-week {
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.08);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.2);
 }
 

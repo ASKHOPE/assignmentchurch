@@ -625,6 +625,63 @@
         }
       });
     }
+
+    // Auto-fill FSY Lessons specifically for Young Men and Young Women
+    const btnAutofillFsy = document.getElementById("btn-autofill-fsy");
+    if (btnAutofillFsy) {
+      btnAutofillFsy.addEventListener("click", async () => {
+        btnAutofillFsy.disabled = true;
+        btnAutofillFsy.innerHTML = "<span>⏳ Matching FSY...</span>";
+        try {
+          const d = new Date(currentDate + "T00:00:00");
+          const year = d.getFullYear();
+          const month = d.getMonth() + 1;
+          const day = d.getDate();
+          const sundayNum = Math.ceil(day / 7);
+
+          const fsyRes = await fetch(`/api/fsy-lessons?year=${year}&month=${month}&sunday=${sundayNum}`);
+          if (!fsyRes.ok) throw new Error("Failed to fetch FSY lesson");
+          const fsyData = await fsyRes.json();
+          const fsyLessons = fsyData.lessons || [];
+
+          const ymLesson = fsyLessons.find(l => l.organization === "young_men") || fsyLessons.find(l => l.organization === "both");
+          const ywLesson = fsyLessons.find(l => l.organization === "young_women") || fsyLessons.find(l => l.organization === "both");
+
+          if (!ymLesson && !ywLesson) {
+            showToast("No scheduled FSY lesson found for this Sunday");
+            return;
+          }
+
+          const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || "";
+          };
+
+          if (ymLesson) {
+            setVal("ym-topic", ymLesson.title);
+            setVal("ym-url", ymLesson.url);
+          }
+          if (ywLesson) {
+            setVal("yw-topic", ywLesson.title);
+            setVal("yw-url", ywLesson.url);
+          }
+
+          if (!currentAgenda.classes_json) currentAgenda.classes_json = {};
+          const c = currentAgenda.classes_json;
+          if (ymLesson) c.young_men = { ...(c.young_men || {}), topic: ymLesson.title, url: ymLesson.url };
+          if (ywLesson) c.young_women = { ...(c.young_women || {}), topic: ywLesson.title, url: ywLesson.url };
+
+          scheduleSave();
+          showToast(`✓ Auto-filled FSY Lessons for Young Men & Young Women!`);
+        } catch (err) {
+          console.error("FSY auto-fill error:", err);
+          showToast("Failed to auto-fill FSY lessons");
+        } finally {
+          btnAutofillFsy.disabled = false;
+          btnAutofillFsy.innerHTML = "<span>🌟 Auto-Fill FSY (YM & YW)</span>";
+        }
+      });
+    }
   }
 
   function doesDateMatchRangeApp(dateStr, rangeStr, year) {
@@ -1061,7 +1118,7 @@
         btn.classList.add("selected");
       }
 
-      const displayStr = `${s.day} ${popoverDate.toLocaleDateString("en-US", { month: "short" })} ${year}`;
+      const displayStr = `${String(s.day).padStart(2, "0")}/${String(month + 1).padStart(2, "0")}/${year}`;
       const badgeStr = `${ordinals[s.weekNum] || s.weekNum + "th"} Sunday`;
 
       btn.innerHTML = `
@@ -1248,12 +1305,7 @@
     const isSunday = dateObj.getDay() === 0;
 
     // Display formatted title
-    calDetailsDate.textContent = dateObj.toLocaleDateString("en-GB", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    calDetailsDate.textContent = `${dateObj.toLocaleDateString("en-GB", { weekday: "long" })}, ${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${y}`;
 
     if (isSunday) {
       const weekNum = Math.min(5, Math.ceil(d / 7));
@@ -1372,13 +1424,11 @@
   }
 
   function formatDisplayDate(dateStr) {
+    if (!dateStr) return "";
     const [y, m, d] = dateStr.split("-").map(Number);
-    const date = new Date(y, m - 1, d, 12, 0, 0);
-    return date.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const day = String(d).padStart(2, "0");
+    const month = String(m).padStart(2, "0");
+    return `${day}/${month}/${y}`;
   }
 
   function getNestedValue(obj, path) {
