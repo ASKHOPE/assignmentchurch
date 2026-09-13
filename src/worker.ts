@@ -15,6 +15,8 @@ import {
   getComeFollowMeD1,
   searchGospelPrinciplesD1,
   getFsyLessonsD1,
+  getConferenceMetaD1,
+  getFsyMetaD1,
   seedChurchDataD1,
   seedGospelPrinciplesD1,
   seedFsyLessonsD1,
@@ -23,11 +25,15 @@ import {
   formatFullAgendaWhatsApp,
   formatSacramentWhatsApp,
   formatClassesWhatsApp,
+  formatAssignmentsWhatsApp,
   formatIndividualReminderWhatsApp,
   getWhatsAppShareUrl,
 } from "./whatsapp-formatter";
 import { getHolidaysForYear } from "./holidays";
 import { createDefaultAgenda } from "./agenda-utils";
+import { mergeAgendas } from "./merge-engine";
+import { defaultRateLimiter } from "./rate-limiter";
+import { defaultWriteQueue } from "./write-queue";
 
 import hymnsFallback from "../data/hymns.json";
 import talksFallback from "../data/conference-talks.json";
@@ -43,10 +49,33 @@ export interface Env {
 // In-memory fallback if D1 database binding is not configured
 const memoryStore: Record<string, any> = {};
 
+function getOrSetEditorId(req: Request): { editorId: string; isNew: boolean; cookieHeader?: string } {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.match(/ward_editor_id=([^;]+)/);
+  if (match && match[1]) {
+    return { editorId: match[1].trim(), isNew: false };
+  }
+  const editorId = `editor_${crypto.randomUUID()}`;
+  const newCookie = `ward_editor_id=${editorId}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`;
+  return { editorId, isNew: true, cookieHeader: newCookie };
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+    const { editorId, isNew, cookieHeader } = getOrSetEditorId(request);
+
+    const withHeaders = (headers: Record<string, string> = {}): Record<string, string> => {
+      const resHeaders: Record<string, string> = {
+        "Access-Control-Allow-Origin": "*",
+        ...headers,
+      };
+      if (isNew && cookieHeader) {
+        resHeaders["Set-Cookie"] = cookieHeader;
+      }
+      return resHeaders;
+    };
 
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
@@ -57,6 +86,27 @@ export default {
           "Access-Control-Allow-Headers": "Content-Type",
         },
       });
+    }
+
+    // Rate Limiting Enforcement
+    const isWrite = request.method === "PUT" || request.method === "POST" || request.method === "DELETE";
+    const clientKey = `${editorId}:${request.headers.get("cf-connecting-ip") || "edge"}`;
+    const rateResult = defaultRateLimiter.check(clientKey, isWrite);
+
+    if (!rateResult.allowed) {
+      return Response.json(
+        {
+          success: false,
+          error: "Too many modifications. Please wait a moment before saving again.",
+          resetInSec: rateResult.resetInSec,
+        },
+        {
+          status: 429,
+          headers: withHeaders({
+            "Retry-After": String(rateResult.resetInSec),
+          }),
+        }
+      );
     }
 
     // Route API requests
@@ -73,24 +123,33 @@ export default {
             agenda = memoryStore[date] || createDefaultAgenda(date);
           }
           return Response.json({ success: true, data: agenda }, {
-            headers: { "Access-Control-Allow-Origin": "*" },
+            headers: withHeaders(),
           });
         }
 
-        // PUT /api/agenda/:date
+        // PUT /api/agenda/:date (Serialized per-date write queue)
         if (request.method === "PUT" && agendaMatch) {
           const date = agendaMatch[1];
           const body = (await request.json()) as any;
-          let saved;
-          if (env.DB) {
-            saved = await saveAgendaD1(env.DB, { ...body, date });
-          } else {
-            const current = memoryStore[date] || createDefaultAgenda(date);
-            saved = { ...current, ...body, date, updated_at: new Date().toISOString() };
-            memoryStore[date] = saved;
-          }
-          return Response.json({ success: true, data: saved }, {
-            headers: { "Access-Control-Allow-Origin": "*" },
+          
+          const saved = await defaultWriteQueue.run(date, async () => {
+            if (env.DB) {
+              return await saveAgendaD1(env.DB, { ...body, date });
+            } else {
+              const current = memoryStore[date] || createDefaultAgenda(date);
+              const { merged, isConcurrentMerge, conflicts } = mergeAgendas(current, { ...body, date });
+              memoryStore[date] = merged;
+              return { ...merged, _isConcurrentMerge: isConcurrentMerge, _conflicts: conflicts };
+            }
+          });
+
+          return Response.json({ 
+            success: true, 
+            data: saved,
+            merged: Boolean(saved._isConcurrentMerge),
+            conflicts: saved._conflicts || [],
+          }, {
+            headers: withHeaders(),
           });
         }
 
@@ -164,6 +223,48 @@ export default {
             }).slice(0, limit);
           }
           return Response.json({ success: true, count: talks.length, talks }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/talks/meta
+        if (request.method === "GET" && path === "/api/talks/meta") {
+          let meta = { years: [] as number[], speakers: [] as string[] };
+          if (env.DB) {
+            meta = await getConferenceMetaD1(env.DB);
+          } else {
+            const years = [...new Set((talksFallback as any[]).map(t => t.year))].sort((a,b) => b - a);
+            const speakerCounts: Record<string, number> = {};
+            (talksFallback as any[]).forEach(t => {
+              if (!t.speaker.includes("Session") && !t.speaker.includes("Auditor")) {
+                speakerCounts[t.speaker] = (speakerCounts[t.speaker] || 0) + 1;
+              }
+            });
+            const speakers = Object.keys(speakerCounts).sort((a,b) => speakerCounts[b] - speakerCounts[a] || a.localeCompare(b));
+            meta = { years, speakers };
+          }
+          return Response.json({ success: true, ...meta }, {
+            headers: { "Access-Control-Allow-Origin": "*" },
+          });
+        }
+
+        // GET /api/fsy-lessons/meta
+        if (request.method === "GET" && path === "/api/fsy-lessons/meta") {
+          let months: { month: number; year: number }[] = [];
+          if (env.DB) {
+            const meta = await getFsyMetaD1(env.DB);
+            months = meta.months;
+          } else {
+            const seen = new Set<string>();
+            (fsyFallback as any[]).forEach(f => {
+              const k = `${f.year}-${f.month}`;
+              if (!seen.has(k)) {
+                seen.add(k);
+                months.push({ year: f.year, month: f.month });
+              }
+            });
+          }
+          return Response.json({ success: true, months }, {
             headers: { "Access-Control-Allow-Origin": "*" },
           });
         }
@@ -264,6 +365,8 @@ export default {
             text = formatSacramentWhatsApp(agenda);
           } else if (preset === "classes") {
             text = formatClassesWhatsApp(agenda);
+          } else if (preset === "assignments") {
+            text = formatAssignmentsWhatsApp(agenda);
           } else if (preset === "reminder") {
             text = formatIndividualReminderWhatsApp(
               body.roleOrClass || "Speaker/Teacher",

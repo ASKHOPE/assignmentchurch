@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Church Study & Curriculum Planner | Sunday Agenda</title>
-  
+
   <!-- Mobile & PWA meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,39 +13,126 @@
   <meta name="theme-color" content="#1e1b4b">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/style.css?v=4">
 </head>
-<body class="study-planner-body">
+
+<body class="study-planner-body theme-dark">
   <div class="app-shell">
-    
+
     <!-- Top Nav Header -->
     <header class="app-header study-header">
       <div class="header-left">
         <a href="/" class="btn-back" id="backToAgendaBtn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
           <span>Agenda</span>
         </a>
         <div class="study-title-group">
-          <h1>Church Study & Curriculum</h1>
-          <p class="study-subtitle">Curate hymns, conference talks, and CFM lessons for upcoming Sundays</p>
+          <h1>Set Topics</h1>
+          <p class="study-subtitle">Set meeting type, hymns, talks, and lesson topics for upcoming Sundays</p>
         </div>
       </div>
-      
-      <!-- Date Selector for Curating Upcoming Sundays -->
+
+      <!-- Right side: Date Navigator (from Home) & Agenda Sheet -->
       <div class="header-right study-date-bar">
-        <div class="date-navigator">
-          <button id="prevSundayBtn" class="btn-icon" title="Previous Sunday">◀</button>
-          <div class="active-date-display">
-            <span class="label">Curating For</span>
-            <input type="date" id="curateDateInput" class="date-input-styled">
-          </div>
-          <button id="nextSundayBtn" class="btn-icon" title="Next Sunday">▶</button>
+        <div class="nav-center-cluster">
+          <nav class="date-navigator" aria-label="Sunday date navigation">
+            <button id="btn-prev-sunday" class="nav-btn icon-btn" title="Previous Sunday (7 days ago)"
+              aria-label="Previous Sunday">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <div class="date-picker-wrap" id="date-picker-wrap">
+              <button id="btn-open-calendar" class="btn-calendar-trigger" type="button" aria-haspopup="dialog"
+                aria-expanded="false" title="Open Calendar & Sunday Selector">
+                <span class="calendar-icon" aria-hidden="true">📅</span>
+                <div class="date-display-badge">
+                  <span class="date-day-label" id="date-display-text" title="">—</span>
+                  <span class="week-pill" id="week-pill">—</span>
+                </div>
+                <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+
+              <input type="date" id="date-picker" class="native-date-input" aria-label="Select date">
+
+              <!-- Sundays Calendar Quick-Selector Popover -->
+              <div class="calendar-popover" id="calendar-popover" aria-hidden="true">
+                <div class="popover-header">
+                  <span class="popover-title">Select Sunday</span>
+                  <button id="btn-close-popover" class="btn-popover-close" type="button" aria-label="Close">×</button>
+                </div>
+
+                <div class="month-selector-bar">
+                  <button id="btn-prev-month" class="nav-btn-mini" type="button" title="Previous Month">‹</button>
+                  <span id="popover-month-label" class="popover-month-label"></span>
+                  <button id="btn-next-month" class="nav-btn-mini" type="button" title="Next Month">›</button>
+                </div>
+
+                <div class="sundays-list" id="popover-sundays-list">
+                  <!-- Dynamically populated with Sundays of the month -->
+                </div>
+
+                <div class="popover-footer">
+                  <button id="btn-trigger-native-picker" class="btn btn-secondary btn-sm full-width" type="button">
+                    <span>🗓️ Open Calendar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button id="btn-next-sunday" class="nav-btn icon-btn" title="Next Sunday (in 7 days)"
+              aria-label="Next Sunday">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </nav>
+
+          <!-- Overall Agenda Spreadsheet (Right next to Date Selector) -->
+          <button id="btn-overall-agenda" class="btn btn-secondary icon-btn-labeled btn-nav-agenda-sheet"
+            title="View Overall Agenda Spreadsheet">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18M3 15h18M9 3v18" />
+            </svg>
+            <span class="desktop-only">Agenda Sheet</span>
+          </button>
+
+          <!-- Language Toggle: Telugu / English -->
+          <button id="btn-lang-toggle" class="btn btn-ghost btn-lang" title="Toggle Telugu / English"
+            aria-label="Toggle Language">
+            <span id="lang-icon">తె</span>
+            <span class="lang-label desktop-only" id="lang-label">Telugu</span>
+          </button>
+
+          <!-- Check for Updates button -->
+          <button id="btn-sync-content" class="btn btn-secondary icon-btn-labeled" title="Check for New Content & Talks">
+            <span>🔄</span>
+            <span class="desktop-only">Updates</span>
+          </button>
+
+          <!-- Leader Login Button -->
+          <button id="btn-login-modal" class="btn btn-auth logged-out" title="Leader Login" aria-label="Leader Login">
+            <span id="auth-status-icon">🔒</span>
+            <span id="auth-status-text" class="desktop-only">Login</span>
+          </button>
+
+          <!-- Settings Button -->
+          <button id="btn-settings-modal" class="btn btn-settings" title="Ward Settings & Logins" aria-label="Settings">
+            <span>⚙️</span>
+          </button>
         </div>
       </div>
     </header>
@@ -56,10 +144,71 @@
           <span class="pulse-indicator"></span>
           <h2 id="overviewSundayTitle">Active Sunday Plan: Loading...</h2>
         </div>
-        <a href="/" id="viewInAgendaLink" class="btn-view-agenda">View in Full Agenda →</a>
+
+        <!-- Meeting Type Selector in place of View Full Agenda button -->
+        <div class="study-header-meeting-type" role="radiogroup" aria-label="Select meeting type">
+          <span class="study-hmt-label">Type:</span>
+          <button type="button" class="meeting-type-btn-study active" data-type="standard"
+            title="Standard Sacrament Meeting">
+            ⛪ Standard
+          </button>
+          <button type="button" class="meeting-type-btn-study" data-type="fast_and_testimony"
+            title="Fast &amp; Testimony Meeting">
+            🍞 Fast &amp; Test.
+          </button>
+          <button type="button" class="meeting-type-btn-study" data-type="general_conference"
+            title="General Conference">
+            📡 Gen. Conf.
+          </button>
+          <button type="button" class="meeting-type-btn-study" data-type="stake_conference" title="Stake Conference">
+            🏛️ Stake Conf.
+          </button>
+        </div>
       </div>
 
-      <div class="curated-sections-container">
+      <!-- Conference No Assignment Card (Visible during General or Stake Conference, identical to Home) -->
+      <section class="card card-conference" id="study-conference-card"
+        style="display: none; margin-top: 14px; border-radius: 12px;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-icon" id="study-conf-icon">📡</span>
+            <h2 class="card-title" id="study-conf-main-title">Conference Sunday</h2>
+          </div>
+          <span class="pill-badge pill-blue" id="study-conf-type-badge">Worldwide Broadcast</span>
+        </div>
+        <div class="card-body conference-body">
+          <div class="conf-alert-box">
+            <p class="conf-lead" id="study-conf-notice-text">Notice: No local ward sacrament meeting or 2nd hour Sunday
+              School/Quorum classes will be held today.</p>
+          </div>
+
+          <div class="conf-form-grid">
+            <div class="conf-field">
+              <label class="field-label" for="study-conf-title">Conference Title</label>
+              <input type="text" id="study-conf-title" class="text-input"
+                placeholder="e.g. 196th Semiannual General Conference">
+            </div>
+
+            <div class="conf-field">
+              <label class="field-label" for="study-conf-url">Broadcast / Stream Link</label>
+              <div class="input-with-action">
+                <input type="url" id="study-conf-url" class="text-input text-url"
+                  placeholder="https://www.churchofjesuschrist.org/general-conference">
+                <a id="study-conf-link-btn" href="#" target="_blank" class="link-action-btn"
+                  title="Open Stream Link">🔗</a>
+              </div>
+            </div>
+
+            <div class="conf-field full-width">
+              <label class="field-label" for="study-conf-details">Sessions Schedule & Notes</label>
+              <textarea id="study-conf-details" class="text-area-input" rows="3"
+                placeholder="Saturday Sessions: 10:00 AM, 2:00 PM, 6:00 PM&#10;Sunday Sessions: 10:00 AM, 2:00 PM"></textarea>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="curated-sections-container" id="curatedSectionsContainer">
         <!-- Section 1: All 4 Hymns -->
         <div class="overview-subgroup">
           <div class="subgroup-heading">
@@ -86,24 +235,38 @@
           </div>
         </div>
 
-        <!-- Section 2: Sacrament Talks -->
-        <div class="overview-subgroup">
+        <!-- Section 2: Sacrament Talks / Testimonies -->
+        <div class="overview-subgroup" id="overviewTalksSubgroup">
           <div class="subgroup-heading">
-            <span class="subgroup-icon">🎙️</span>
-            <span class="subgroup-title">Sacrament Talks</span>
+            <span class="subgroup-icon" id="talksSubgroupIcon">🎙️</span>
+            <span class="subgroup-title" id="talksSubgroupTitle">Sacrament Talks</span>
           </div>
-          <div class="curated-grid talks-grid-3">
+
+          <!-- Normal 3 Talks Grid (Hidden on Fast & Testimony Sunday) -->
+          <div class="curated-grid talks-grid-3" id="overviewTalksGrid">
             <div class="curated-pill" id="pillTalk1">
               <span class="pill-label">1st Talk (Youth)</span>
               <span class="pill-val" id="valTalk1">No topic set</span>
+              <span class="pill-source-note" id="talkNote1" style="display:none;"></span>
             </div>
             <div class="curated-pill" id="pillTalk2">
               <span class="pill-label">2nd Talk</span>
               <span class="pill-val" id="valTalk2">No topic set</span>
+              <span class="pill-source-note" id="talkNote2" style="display:none;"></span>
             </div>
             <div class="curated-pill" id="pillTalk3">
               <span class="pill-label">3rd Talk</span>
               <span class="pill-val" id="valTalk3">No topic set</span>
+              <span class="pill-source-note" id="talkNote3" style="display:none;"></span>
+            </div>
+          </div>
+
+          <!-- Fast & Testimony Banner when 1st Sunday is selected -->
+          <div class="fast-testimony-banner" id="studyFastTestimonyBanner" style="display: none;">
+            <span class="banner-icon">🍞</span>
+            <div>
+              <strong>Fast &amp; Testimony Sunday:</strong> Following the sacrament, time is devoted for congregation
+              members to bear their testimonies. No assigned talks are scheduled.
             </div>
           </div>
         </div>
@@ -150,7 +313,7 @@
             <div class="curated-pill" id="pillEq">
               <div class="pill-header-row">
                 <span class="pill-label">General Conference (Elders Quorum)</span>
-                <span class="pill-tag-mini">2nd & 4th Sun</span>
+
               </div>
               <span class="pill-val" id="valEq">No talk set</span>
             </div>
@@ -159,7 +322,6 @@
             <div class="curated-pill" id="pillRs">
               <div class="pill-header-row">
                 <span class="pill-label">General Conference (Relief Society)</span>
-                <span class="pill-tag-mini">2nd & 4th Sun</span>
               </div>
               <span class="pill-val" id="valRs">No talk set</span>
             </div>
@@ -168,7 +330,7 @@
             <div class="curated-pill" id="pillYm">
               <div class="pill-header-row">
                 <span class="pill-label">FSY Magazine (Young Men)</span>
-                <span class="pill-tag-mini">Priesthood</span>
+                <span class="pill-tag-mini">YoungMen Classes</span>
               </div>
               <span class="pill-val" id="valYm">No lesson set</span>
             </div>
@@ -214,8 +376,10 @@
     <section class="tab-panel active" id="tabHymns">
       <div class="filter-controls">
         <div class="search-input-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
           <input type="text" id="hymnSearchInput" placeholder="Search hymns by number (e.g. 113) or title...">
           <button class="clear-search" id="clearHymnSearch">✕</button>
@@ -223,16 +387,28 @@
         <div class="book-filter-chips">
           <button class="chip active" data-book="Hymns (1985)">Hymns 1985 (Old Hymns)</button>
           <button class="chip" data-book="Hymns for Home and Church">Hymns for Home & Church (New Hymns)</button>
-          <button class="chip" data-book="all">All Books (664)</button>
           <button class="chip" data-book="Children's Songbook">Children’s Songbook</button>
+          <button class="chip" data-book="all">All Music Books </button>
         </div>
         <div class="view-mode-toggle" role="group" aria-label="Hymns view mode">
           <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
             <span>Grid</span>
           </button>
           <button type="button" class="btn-view-toggle" data-view="list" title="List View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span>List</span>
           </button>
         </div>
@@ -248,10 +424,13 @@
     <section class="tab-panel" id="tabTalks">
       <div class="filter-controls">
         <div class="search-input-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
-          <input type="text" id="talkSearchInput" placeholder="Search talks by speaker name or title (e.g. Nelson, Peace)...">
+          <input type="text" id="talkSearchInput"
+            placeholder="Search talks by speaker name or title (e.g. Nelson, Peace)...">
           <button class="clear-search" id="clearTalkSearch">✕</button>
         </div>
         <div class="dropdown-filter-row">
@@ -264,40 +443,31 @@
             <option value="speaker-desc">👤 Speaker (Z → A)</option>
           </select>
           <select id="talkYearSelect" class="filter-select">
-            <option value="">All Years (2020–2026)</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021</option>
-            <option value="2020">2020</option>
+            <option value="">All Years</option>
           </select>
           <select id="talkSpeakerSelect" class="filter-select">
-            <option value="">All Church Leaders</option>
-            <option value="Nelson">Russell M. Nelson</option>
-            <option value="Oaks">Dallin H. Oaks</option>
-            <option value="Eyring">Henry B. Eyring</option>
-            <option value="Holland">Jeffrey R. Holland</option>
-            <option value="Bednar">David A. Bednar</option>
-            <option value="Christofferson">D. Todd Christofferson</option>
-            <option value="Andersen">Neil L. Andersen</option>
-            <option value="Rasband">Ronald A. Rasband</option>
-            <option value="Stevenson">Gary E. Stevenson</option>
-            <option value="Renlund">Dale G. Renlund</option>
-            <option value="Gong">Gerrit W. Gong</option>
-            <option value="Soares">Ulisses Soares</option>
-            <option value="Kearon">Patrick Kearon</option>
-            <option value="Uchtdorf">Dieter F. Uchtdorf</option>
+            <option value="">All Church Leaders & Speakers</option>
           </select>
         </div>
         <div class="view-mode-toggle" role="group" aria-label="Talks view mode">
           <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
             <span>Grid</span>
           </button>
           <button type="button" class="btn-view-toggle" data-view="list" title="List View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span>List</span>
           </button>
         </div>
@@ -315,19 +485,34 @@
     <section class="tab-panel" id="tabGp">
       <div class="filter-controls">
         <div class="search-input-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
-          <input type="text" id="gpSearchInput" placeholder="Search 47 Gospel Principles chapters by number or title (e.g. 26, Sacrifice, Prayer)...">
+          <input type="text" id="gpSearchInput"
+            placeholder="Search 47 Gospel Principles chapters by number or title (e.g. 26, Sacrifice, Prayer)...">
           <button class="clear-search" id="clearGpSearch">✕</button>
         </div>
         <div class="view-mode-toggle" role="group" aria-label="Gospel Principles view mode">
           <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
             <span>Grid</span>
           </button>
           <button type="button" class="btn-view-toggle" data-view="list" title="List View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span>List</span>
           </button>
         </div>
@@ -343,26 +528,39 @@
     <section class="tab-panel" id="tabCfm">
       <div class="filter-controls">
         <div class="search-input-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
-          <input type="text" id="cfmSearchInput" placeholder="Search lessons by topic or scriptures (e.g. Genesis, Proverbs)...">
+          <input type="text" id="cfmSearchInput"
+            placeholder="Search lessons by topic or scriptures (e.g. Genesis, Proverbs)...">
           <button class="clear-search" id="clearCfmSearch">✕</button>
         </div>
         <div class="dropdown-filter-row">
           <select id="cfmYearSelect" class="filter-select">
-            <option value="2026" selected>2026: Old Testament</option>
-            <option value="2025">2025: Doctrine and Covenants</option>
-            <option value="2024">2024: Book of Mormon</option>
+            <option value="">Loading curriculum years...</option>
           </select>
         </div>
         <div class="view-mode-toggle" role="group" aria-label="Come Follow Me view mode">
           <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
             <span>Grid</span>
           </button>
           <button type="button" class="btn-view-toggle" data-view="list" title="List View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span>List</span>
           </button>
         </div>
@@ -380,19 +578,18 @@
     <section class="tab-panel" id="tabFsy">
       <div class="filter-controls">
         <div class="search-input-wrap">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
           </svg>
-          <input type="text" id="fsySearchInput" placeholder="Search FSY Sunday lessons (e.g. Priesthood, Covenant, Word of Wisdom)...">
+          <input type="text" id="fsySearchInput"
+            placeholder="Search FSY Sunday lessons (e.g. Priesthood, Covenant, Word of Wisdom)...">
           <button class="clear-search" id="clearFsySearch">✕</button>
         </div>
         <div class="dropdown-filter-row">
           <select id="fsyMonthSelect" class="filter-select">
-            <option value="">All Months (Sept–Dec 2026)</option>
-            <option value="9">September 2026</option>
-            <option value="10">October 2026</option>
-            <option value="11">November 2026</option>
-            <option value="12">December 2026</option>
+            <option value="">All Months</option>
           </select>
           <select id="fsyOrgSelect" class="filter-select">
             <option value="all">All Quorums & Classes</option>
@@ -402,17 +599,30 @@
         </div>
         <div class="view-mode-toggle" role="group" aria-label="FSY view mode">
           <button type="button" class="btn-view-toggle active" data-view="grid" title="Grid View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
             <span>Grid</span>
           </button>
           <button type="button" class="btn-view-toggle" data-view="list" title="List View">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span>List</span>
           </button>
         </div>
       </div>
 
-      <div class="results-stats" id="fsyResultsCount">Showing FSY lessons from For the Strength of Youth Magazine...</div>
+      <div class="results-stats" id="fsyResultsCount">Showing FSY lessons from For the Strength of Youth Magazine...
+      </div>
       <!-- Scheduled FSY Highlight Banner with Auto-Fill Feature -->
       <div id="fsyActiveMatchBanner" class="fsy-scheduled-banner" style="display: none;"></div>
       <div class="cards-grid" id="fsyGrid">
@@ -420,11 +630,208 @@
       </div>
     </section>
 
+    <!-- Full Calendar & Celebrations Modal (from Home) -->
+    <div id="full-calendar-modal" class="modal-backdrop full-calendar-backdrop" role="dialog" aria-modal="true"
+      aria-labelledby="full-cal-title">
+      <div class="modal-card full-calendar-card">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <span class="modal-icon">🗓️</span>
+            <div>
+              <h2 id="full-cal-title" class="modal-title">Ward Calendar & Celebrations</h2>
+              <p class="cal-subtitle">Explore LDS commemorations and live-synced Indian/Hindu holidays</p>
+            </div>
+          </div>
+          <button id="btn-close-full-cal" class="btn-close" aria-label="Close Calendar">✕</button>
+        </div>
+
+        <div class="modal-body cal-modal-body">
+          <!-- Calendar Navigation & Controls Bar -->
+          <div class="cal-controls-bar">
+            <div class="cal-nav-group">
+              <button id="btn-cal-prev-year" class="btn btn-secondary btn-sm" title="Previous Year">«</button>
+              <button id="btn-cal-prev-month" class="btn btn-secondary btn-sm" title="Previous Month">‹</button>
+              <span id="full-cal-month-year" class="cal-month-year-label">September 2026</span>
+              <button id="btn-cal-next-month" class="btn btn-secondary btn-sm" title="Next Month">›</button>
+              <button id="btn-cal-next-year" class="btn btn-secondary btn-sm" title="Next Year">»</button>
+              <button id="btn-cal-today" class="btn btn-ghost btn-sm" title="Go to Current Date">Today</button>
+            </div>
+
+            <!-- Holiday Toggles -->
+            <div class="cal-toggles-cluster">
+              <label class="cal-toggle-pill cal-toggle-lds" title="Toggle LDS Church commemorations">
+                <input type="checkbox" id="cal-toggle-lds" checked>
+                <span class="toggle-indicator"></span>
+                <span class="toggle-text">⛪ LDS Celebrations</span>
+              </label>
+
+              <label class="cal-toggle-pill cal-toggle-indian"
+                title="Toggle Indian & Hindu holidays fetched live from Google Calendar">
+                <input type="checkbox" id="cal-toggle-indian" checked>
+                <span class="toggle-indicator"></span>
+                <span class="toggle-text">🪔 Indian / Hindu Holidays</span>
+                <span class="pill-badge pill-live" id="indian-feed-status">Live</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Calendar Month Grid -->
+          <div class="cal-grid-wrapper">
+            <div class="cal-grid-header">
+              <div class="cal-col-sun">Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+            <div id="cal-days-grid" class="cal-days-grid">
+              <!-- Dynamically rendered 42 day cells -->
+            </div>
+          </div>
+
+          <!-- Selected Date Details Banner -->
+          <div id="cal-selected-details" class="cal-selected-details">
+            <div class="cal-details-header">
+              <div class="cal-details-date-info">
+                <span id="cal-details-date" class="cal-details-title">Select a date</span>
+                <span id="cal-details-badge" class="pill-badge pill-amber" style="display:none;"></span>
+              </div>
+              <button id="btn-cal-jump-agenda" class="btn btn-primary btn-sm" style="display:none;">
+                <span>⛪ Curate This Sunday</span>
+              </button>
+            </div>
+            <div id="cal-details-events-list" class="cal-details-events-list">
+              <div class="cal-empty-hint">Click any day to view celebrations, Sunday rotation, and curate topics.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall Agenda Spreadsheet Modal -->
+    <div class="modal-backdrop" id="overall-agenda-modal" aria-hidden="true">
+      <div class="modal-dialog modal-xl" role="dialog" aria-labelledby="overall-agenda-title">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">📊</span>
+            <h3 id="overall-agenda-title" class="modal-title">Overall Agenda — Spreadsheet View</h3>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button id="btn-agenda-sheet-prev" class="btn btn-secondary btn-sm" title="Previous Month">‹ Prev</button>
+            <span id="agenda-sheet-month-label" class="popover-month-label"
+              style="min-width:130px;text-align:center;"></span>
+            <button id="btn-agenda-sheet-next" class="btn btn-secondary btn-sm" title="Next Month">Next ›</button>
+            <button id="btn-close-overall-agenda" class="btn-close" aria-label="Close">×</button>
+          </div>
+        </div>
+        <div class="modal-body" style="padding:0;overflow:auto;">
+          <div id="agenda-sheet-wrap" class="agenda-sheet-wrap">
+            <table class="agenda-sheet-table" id="agenda-sheet-table">
+              <thead id="agenda-sheet-thead"></thead>
+              <tbody id="agenda-sheet-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leader Login Modal -->
+    <div class="modal-backdrop" id="login-modal" aria-hidden="true">
+      <div class="modal-dialog" role="dialog" aria-labelledby="login-modal-title" style="max-width: 440px;">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">🔐</span>
+            <h3 id="login-modal-title" class="modal-title" data-i18n="login.modal_title">Leader Access Login</h3>
+          </div>
+          <button id="btn-close-login-modal" class="btn-close" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body" style="gap: 16px;">
+          <p class="conf-lead" data-i18n="login.instruction" style="margin: 0; font-size: 0.88rem;">
+            Enter your name or phone number + "dowleswaram" (no spaces) to unlock editing:
+          </p>
+          <div>
+            <input type="text" id="login-string-input" class="text-input full-width"
+              placeholder="e.g. Bishopdowleswaram or 9876543210dowleswaram" autocomplete="off" autocorrect="off">
+            <span class="pill-source-note" style="margin-top: 6px; display: block;">💡 Valid format: <code>[Name/Phone]dowleswaram</code> (no spaces)</span>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 8px;">
+            <button id="btn-cancel-login" class="btn btn-secondary btn-sm">Cancel</button>
+            <button id="btn-submit-login" class="btn btn-primary btn-sm" style="font-weight: 700;">
+              <span data-i18n="login.submit">Unlock Editing</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ward Settings Modal -->
+    <div class="modal-backdrop" id="settings-modal" aria-hidden="true">
+      <div class="modal-dialog modal-xl" role="dialog" aria-labelledby="settings-modal-title" style="max-width: 800px;">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <span class="modal-icon">⚙️</span>
+            <h3 id="settings-modal-title" class="modal-title" data-i18n="settings.modal_title">Ward Settings & Logins</h3>
+          </div>
+          <button id="btn-close-settings-modal" class="btn-close" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-tabs">
+            <button class="settings-tab-btn active" data-tab="tab-users" data-i18n="settings.tab_users">Authorized Leaders</button>
+            <button class="settings-tab-btn" data-tab="tab-general" data-i18n="settings.tab_general">General Settings</button>
+          </div>
+
+          <div id="settings-tab-users" class="settings-content active" style="margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 0.86rem; color: var(--text-muted);">Manage leaders allowed to login with passkey</span>
+              <button id="btn-add-leader" class="btn btn-primary btn-sm" style="font-size: 0.8rem;">
+                <span>+ Add Leader</span>
+              </button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="users-table" id="auth-users-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Passkey</th>
+                    <th>Role / Calling</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="auth-users-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="settings-tab-general" class="settings-content" style="display: none; margin-top: 10px;">
+            <div class="conf-form-grid">
+              <div class="conf-field">
+                <label class="field-label">Ward Name</label>
+                <input type="text" id="setting-ward-name" class="text-input" value="Dowleswaram Ward">
+              </div>
+              <div class="conf-field">
+                <label class="field-label">Primary Language</label>
+                <select id="setting-default-lang" class="filter-select full-width">
+                  <option value="en">English</option>
+                  <option value="te">తెలుగు (Telugu)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="studyToast" class="study-toast"></div>
   </div>
 
-  <!-- Toast Notifications -->
-  <div id="studyToast" class="study-toast"></div>
-
+  <script type="module" src="/i18n.js"></script>
   <script src="/study.js?v=4"></script>
 </body>
+
 </html>

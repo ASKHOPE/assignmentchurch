@@ -1,4 +1,5 @@
 import { AgendaRecord, createDefaultAgenda, MeetingType } from "./agenda-utils";
+import { mergeAgendas, IncomingAgendaPayload } from "./merge-engine";
 
 let schemaInitialized = false;
 
@@ -18,14 +19,17 @@ export async function ensureD1Schema(db: D1Database): Promise<void> {
         opening_prayer_name TEXT DEFAULT '',
         talk1_org TEXT DEFAULT 'Bishopric',
         talk1_title TEXT DEFAULT '',
+        talk1_speaker_role TEXT DEFAULT 'Brother',
         talk1_speaker TEXT DEFAULT '',
         talk2_org TEXT DEFAULT 'Elders Quorum',
         talk2_title TEXT DEFAULT '',
         talk2_url TEXT DEFAULT '',
+        talk2_speaker_role TEXT DEFAULT 'Brother',
         talk2_speaker TEXT DEFAULT '',
         talk3_org TEXT DEFAULT 'Member',
         talk3_title TEXT DEFAULT '',
         talk3_url TEXT DEFAULT '',
+        talk3_speaker_role TEXT DEFAULT 'Brother',
         talk3_speaker TEXT DEFAULT '',
         closing_prayer_role TEXT DEFAULT 'Sister',
         closing_prayer_name TEXT DEFAULT '',
@@ -113,6 +117,18 @@ export async function ensureD1Schema(db: D1Database): Promise<void> {
       )
     `).run();
 
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS auth_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        passkey TEXT NOT NULL DEFAULT 'dowleswaram',
+        role TEXT NOT NULL DEFAULT 'Leader',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        last_login TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `).run();
+
     schemaInitialized = true;
   } catch (err) {
     console.warn("D1 schema initialization warning:", err);
@@ -148,14 +164,17 @@ export async function getAgendaByDateD1(db: D1Database, date: string): Promise<A
     opening_prayer_name: row.opening_prayer_name || "",
     talk1_org: row.talk1_org || defaultAgenda.talk1_org,
     talk1_title: row.talk1_title || "",
+    talk1_speaker_role: row.talk1_speaker_role || defaultAgenda.talk1_speaker_role || "Brother",
     talk1_speaker: row.talk1_speaker || "",
     talk2_org: row.talk2_org || defaultAgenda.talk2_org,
     talk2_title: row.talk2_title || "",
     talk2_url: row.talk2_url || "",
+    talk2_speaker_role: row.talk2_speaker_role || defaultAgenda.talk2_speaker_role || "Brother",
     talk2_speaker: row.talk2_speaker || "",
     talk3_org: row.talk3_org || defaultAgenda.talk3_org || "Member",
     talk3_title: row.talk3_title || "",
     talk3_url: row.talk3_url || "",
+    talk3_speaker_role: row.talk3_speaker_role || defaultAgenda.talk3_speaker_role || "Brother",
     talk3_speaker: row.talk3_speaker || "",
     closing_prayer_role: row.closing_prayer_role || "Sister",
     closing_prayer_name: row.closing_prayer_name || "",
@@ -177,37 +196,29 @@ export async function getAgendaByDateD1(db: D1Database, date: string): Promise<A
 
 export async function saveAgendaD1(
   db: D1Database,
-  data: Partial<AgendaRecord> & { date: string }
-): Promise<AgendaRecord> {
+  data: IncomingAgendaPayload
+): Promise<AgendaRecord & { _isConcurrentMerge?: boolean; _conflicts?: string[] }> {
   await ensureD1Schema(db);
 
   const current = await getAgendaByDateD1(db, data.date);
-  const merged: AgendaRecord = {
-    ...current,
-    ...data,
-    classes_json: {
-      ...current.classes_json,
-      ...(data.classes_json || {}),
-    },
-    updated_at: new Date().toISOString(),
-  };
+  const { merged, isConcurrentMerge, conflicts } = mergeAgendas(current, data);
 
   await db
     .prepare(`
       INSERT INTO agendas (
         date, week_label, meeting_type, opening_prayer_role, opening_prayer_name,
-        talk1_org, talk1_title, talk1_speaker,
-        talk2_org, talk2_title, talk2_url, talk2_speaker,
-        talk3_org, talk3_title, talk3_url, talk3_speaker,
+        talk1_org, talk1_title, talk1_speaker_role, talk1_speaker,
+        talk2_org, talk2_title, talk2_url, talk2_speaker_role, talk2_speaker,
+        talk3_org, talk3_title, talk3_url, talk3_speaker_role, talk3_speaker,
         closing_prayer_role, closing_prayer_name,
         hymn_opening, hymn_sacrament, hymn_interlude, hymn_closing,
         classes_json, conference_title, conference_details, conference_url,
         notes, updated_at
       ) VALUES (
         ?, ?, ?, ?, ?,
-        ?, ?, ?,
         ?, ?, ?, ?,
-        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?,
         ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
@@ -220,14 +231,17 @@ export async function saveAgendaD1(
         opening_prayer_name = excluded.opening_prayer_name,
         talk1_org = excluded.talk1_org,
         talk1_title = excluded.talk1_title,
+        talk1_speaker_role = excluded.talk1_speaker_role,
         talk1_speaker = excluded.talk1_speaker,
         talk2_org = excluded.talk2_org,
         talk2_title = excluded.talk2_title,
         talk2_url = excluded.talk2_url,
+        talk2_speaker_role = excluded.talk2_speaker_role,
         talk2_speaker = excluded.talk2_speaker,
         talk3_org = excluded.talk3_org,
         talk3_title = excluded.talk3_title,
         talk3_url = excluded.talk3_url,
+        talk3_speaker_role = excluded.talk3_speaker_role,
         talk3_speaker = excluded.talk3_speaker,
         closing_prayer_role = excluded.closing_prayer_role,
         closing_prayer_name = excluded.closing_prayer_name,
@@ -250,14 +264,17 @@ export async function saveAgendaD1(
       merged.opening_prayer_name,
       merged.talk1_org || "Bishopric",
       merged.talk1_title,
+      merged.talk1_speaker_role || "Brother",
       merged.talk1_speaker,
       merged.talk2_org,
       merged.talk2_title,
       merged.talk2_url || "",
+      merged.talk2_speaker_role || "Brother",
       merged.talk2_speaker,
       merged.talk3_org || "Member",
       merged.talk3_title,
       merged.talk3_url || "",
+      merged.talk3_speaker_role || "Brother",
       merged.talk3_speaker,
       merged.closing_prayer_role,
       merged.closing_prayer_name,
@@ -612,5 +629,116 @@ export async function seedFsyLessonsD1(db: D1Database, lessons: any[]) {
   }
   return { count: lessons.length };
 }
+export async function getConferenceMetaD1(db: D1Database): Promise<{ years: number[]; speakers: string[] }> {
+  await ensureD1Schema(db);
+  const yearRes = await db.prepare("SELECT DISTINCT year FROM conference_talks ORDER BY year DESC").all<any>();
+  const years = (yearRes.results || []).map((r: any) => r.year);
 
+  const speakerRes = await db.prepare(
+    "SELECT speaker, COUNT(*) as count FROM conference_talks WHERE speaker NOT LIKE '%Session%' AND speaker NOT LIKE '%Auditor%' GROUP BY speaker ORDER BY count DESC, speaker ASC"
+  ).all<any>();
+  const speakers = (speakerRes.results || []).map((r: any) => r.speaker);
 
+  return { years, speakers };
+}
+
+export async function getFsyMetaD1(db: D1Database): Promise<{ months: { month: number; year: number }[] }> {
+  await ensureD1Schema(db);
+  const res = await db.prepare("SELECT DISTINCT year, month FROM fsy_lessons ORDER BY year DESC, month ASC").all<any>();
+  return { months: res.results || [] };
+}
+
+export async function authenticateUserD1(db: D1Database, inputString: string) {
+  await ensureD1Schema(db);
+  const trimmed = inputString.trim();
+  if (!trimmed) return { success: false, error: "Please enter your name or phone number and passkey" };
+
+  let name = "";
+  let passkey = "";
+
+  const lower = trimmed.toLowerCase();
+  if (lower.endsWith("dowleswaram")) {
+    passkey = "dowleswaram";
+    name = trimmed.slice(0, trimmed.length - "dowleswaram".length).trim();
+  } else {
+    const parts = trimmed.split(/\s+/);
+    if (parts.length >= 2) {
+      passkey = parts[parts.length - 1].toLowerCase();
+      name = parts.slice(0, -1).join(" ").trim();
+    } else {
+      name = trimmed;
+      passkey = "";
+    }
+  }
+
+  if (!name) {
+    return { success: false, error: 'Password should be your name or phone number + dowleswaram (e.g. "Bishopdowleswaram" or "9876543210dowleswaram")' };
+  }
+
+  const user = await db
+    .prepare("SELECT * FROM auth_users WHERE LOWER(name) = LOWER(?) AND LOWER(passkey) = LOWER(?) AND is_active = 1")
+    .bind(name, passkey)
+    .first<any>();
+
+  if (user) {
+    await db.prepare("UPDATE auth_users SET last_login = CURRENT_TIMESTAMP WHERE id = ?").bind(user.id).run();
+    return { success: true, user };
+  }
+
+  if (passkey === "dowleswaram" && name.length >= 2) {
+    try {
+      await db.prepare("INSERT INTO auth_users (name, passkey, role, is_active, last_login) VALUES (?, ?, 'Leader', 1, CURRENT_TIMESTAMP)")
+        .bind(name, "dowleswaram").run();
+      const newUser = await db.prepare("SELECT * FROM auth_users WHERE LOWER(name) = LOWER(?)").bind(name).first<any>();
+      return { success: true, user: newUser };
+    } catch {
+      const existing = await db.prepare("SELECT * FROM auth_users WHERE LOWER(name) = LOWER(?)").bind(name).first<any>();
+      if (existing && existing.passkey.toLowerCase() === passkey) {
+        return { success: true, user: existing };
+      }
+    }
+  }
+
+  return { success: false, error: "Invalid credentials. Use your name or phone number followed by 'dowleswaram' without spaces (e.g. Bishopdowleswaram)." };
+}
+
+export async function getAllAuthUsersD1(db: D1Database) {
+  await ensureD1Schema(db);
+  const res = await db.prepare("SELECT id, name, passkey, role, is_active, last_login, created_at FROM auth_users ORDER BY name ASC").all<any>();
+  return res.results || [];
+}
+
+export async function saveAuthUserD1(
+  db: D1Database,
+  data: { id?: number; name: string; passkey?: string; role?: string; is_active?: number }
+) {
+  await ensureD1Schema(db);
+  const name = data.name.trim();
+  const passkey = (data.passkey || "dowleswaram").trim();
+  const role = (data.role || "Leader").trim();
+  const isActive = data.is_active !== undefined ? data.is_active : 1;
+
+  if (!name) return { success: false, error: "Name cannot be empty" };
+
+  if (data.id) {
+    await db.prepare("UPDATE auth_users SET name = ?, passkey = ?, role = ?, is_active = ? WHERE id = ?")
+      .bind(name, passkey, role, isActive, data.id).run();
+    const updated = await db.prepare("SELECT * FROM auth_users WHERE id = ?").bind(data.id).first<any>();
+    return { success: true, user: updated };
+  } else {
+    try {
+      await db.prepare("INSERT INTO auth_users (name, passkey, role, is_active) VALUES (?, ?, ?, ?)")
+        .bind(name, passkey, role, isActive).run();
+      const inserted = await db.prepare("SELECT * FROM auth_users WHERE LOWER(name) = LOWER(?)").bind(name).first<any>();
+      return { success: true, user: inserted };
+    } catch {
+      return { success: false, error: "A leader login with this name already exists" };
+    }
+  }
+}
+
+export async function deleteAuthUserD1(db: D1Database, id: number) {
+  await ensureD1Schema(db);
+  await db.prepare("DELETE FROM auth_users WHERE id = ?").bind(id).run();
+  return { success: true };
+}

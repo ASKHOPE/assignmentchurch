@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ward Sunday Agenda & Assignment Planner</title>
-  <meta name="description" content="Ultra-fast mobile-first Sunday meeting agenda and assignment manager with 1-tap WhatsApp sharing.">
+  <meta name="description"
+    content="Ultra-fast mobile-first Sunday meeting agenda and assignment manager with 1-tap WhatsApp sharing.">
   <meta name="theme-color" content="#1e293b">
   <!-- PWA & Mobile Standalone Tags -->
   <link rel="manifest" href="/manifest.json">
@@ -14,6 +16,7 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="theme-dark">
   <!-- Top Application Bar -->
   <header class="app-header" id="app-header">
@@ -22,79 +25,126 @@
         <div class="brand-logo" aria-hidden="true">⛪</div>
         <div class="brand-text">
           <h1 class="brand-title">Ward Agenda</h1>
-          <span class="sync-badge" id="sync-badge" title="Auto-saving enabled">
-            <span class="sync-dot"></span>
-            <span class="sync-text" id="sync-text">Saved</span>
-          </span>
         </div>
       </div>
 
-      <!-- Date Navigator -->
-      <nav class="date-navigator" aria-label="Sunday date navigation">
-        <button id="btn-prev-sunday" class="nav-btn icon-btn" title="Previous Sunday (7 days ago)" aria-label="Previous Sunday">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-
-        <div class="date-picker-wrap" id="date-picker-wrap">
-          <button id="btn-open-calendar" class="btn-calendar-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" title="Open Calendar & Sunday Selector">
-            <span class="calendar-icon" aria-hidden="true">📅</span>
-            <div class="date-display-badge">
-              <span class="date-day-label" id="date-display-text">13 September 2026</span>
-              <span class="week-pill" id="week-pill">1st Sunday</span>
-            </div>
-            <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      <!-- Date Navigator & Agenda Sheet -->
+      <div class="nav-center-cluster">
+        <nav class="date-navigator" aria-label="Sunday date navigation">
+          <button id="btn-prev-sunday" class="nav-btn icon-btn" title="Previous Sunday (7 days ago)"
+            aria-label="Previous Sunday">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
           </button>
-          
-          <input type="date" id="date-picker" class="native-date-input" aria-label="Select date" value="2026-09-13">
 
-          <!-- Sundays Calendar Quick-Selector Popover -->
-          <div class="calendar-popover" id="calendar-popover" aria-hidden="true">
-            <div class="popover-header">
-              <span class="popover-title">Select Sunday</span>
-              <button id="btn-close-popover" class="btn-popover-close" type="button" aria-label="Close">×</button>
-            </div>
+          <div class="date-picker-wrap" id="date-picker-wrap">
+            <button id="btn-open-calendar" class="btn-calendar-trigger" type="button" aria-haspopup="dialog"
+              aria-expanded="false" title="Open Calendar & Sunday Selector">
+              <span class="calendar-icon" aria-hidden="true">📅</span>
+              <div class="date-display-badge">
+                <span class="date-day-label" id="date-display-text" title="13/09/2026">13 Sep 2026</span>
+                <span class="week-pill" id="week-pill">1st Sunday</span>
+              </div>
+              <svg class="dropdown-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
 
-            <div class="month-selector-bar">
-              <button id="btn-prev-month" class="nav-btn-mini" type="button" title="Previous Month">‹</button>
-              <span id="popover-month-label" class="popover-month-label">September 2026</span>
-              <button id="btn-next-month" class="nav-btn-mini" type="button" title="Next Month">›</button>
-            </div>
+            <input type="date" id="date-picker" class="native-date-input" aria-label="Select date" value="2026-09-13">
 
-            <div class="sundays-list" id="popover-sundays-list">
-              <!-- Dynamically populated with Sundays of the month -->
-            </div>
+            <!-- Sundays Calendar Quick-Selector Popover -->
+            <div class="calendar-popover" id="calendar-popover" aria-hidden="true">
+              <div class="popover-header">
+                <span class="popover-title">Select Sunday</span>
+                <button id="btn-close-popover" class="btn-popover-close" type="button" aria-label="Close">×</button>
+              </div>
 
-            <div class="popover-footer">
-              <button id="btn-trigger-native-picker" class="btn btn-secondary btn-sm full-width" type="button">
-                <span>🗓️ Open Full Date Calendar</span>
-              </button>
+              <div class="month-selector-bar">
+                <button id="btn-prev-month" class="nav-btn-mini" type="button" title="Previous Month">‹</button>
+                <span id="popover-month-label" class="popover-month-label">September 2026</span>
+                <button id="btn-next-month" class="nav-btn-mini" type="button" title="Next Month">›</button>
+              </div>
+
+              <div class="sundays-list" id="popover-sundays-list">
+                <!-- Dynamically populated with Sundays of the month -->
+              </div>
+
+              <div class="popover-footer">
+                <button id="btn-trigger-native-picker" class="btn btn-secondary btn-sm full-width" type="button">
+                  <span>🗓️ Open Calendar</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button id="btn-next-sunday" class="nav-btn icon-btn" title="Next Sunday (in 7 days)" aria-label="Next Sunday">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+          <button id="btn-next-sunday" class="nav-btn icon-btn" title="Next Sunday (in 7 days)"
+            aria-label="Next Sunday">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </nav>
+
+        <!-- Overall Agenda Spreadsheet (Right next to Date Selector) -->
+        <button id="btn-overall-agenda" class="btn btn-secondary icon-btn-labeled btn-nav-agenda-sheet"
+          title="View Overall Agenda Spreadsheet">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M3 9h18M3 15h18M9 3v18" />
+          </svg>
+          <span class="desktop-only">Agenda Sheet</span>
         </button>
-      </nav>
+      </div>
 
       <!-- Action Cluster -->
       <div class="actions-cluster">
-        <a href="/study.html" id="btn-nav-study" class="btn btn-study-link" title="Curate Hymns, Conference Talks, and CFM for upcoming Sundays">
-          <span>📖 Study & Curriculum</span>
+        <!-- Set Topics (Study & Curriculum) -->
+        <a href="/study.html" id="btn-nav-study" class="btn btn-study-link"
+          title="Set Topics for Hymns, Conference Talks, and Lessons">
+          <span>📋 Set Topics</span>
         </a>
 
         <button id="btn-open-whatsapp" class="btn btn-whatsapp" title="Curate and Share to WhatsApp">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z" />
+          </svg>
           <span>WhatsApp</span>
         </button>
 
         <button id="btn-print" class="btn btn-secondary icon-btn-labeled" title="Print 1-page Bulletin">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+            <path d="M6 14h12v8H6z" />
+          </svg>
           <span class="desktop-only">Print</span>
         </button>
 
-        <button id="btn-theme-toggle" class="btn btn-ghost icon-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+        <!-- Language Toggle: Telugu / English -->
+        <button id="btn-lang-toggle" class="btn btn-ghost btn-lang" title="Toggle Telugu / English"
+          aria-label="Toggle Language">
+          <span id="lang-icon">తె</span>
+          <span class="lang-label desktop-only" id="lang-label">Telugu</span>
+        </button>
+
+        <!-- Day / Night Toggle -->
+        <button id="btn-theme-toggle" class="btn btn-ghost btn-theme" title="Toggle Light/Dark Theme"
+          aria-label="Toggle Theme">
           <span id="theme-icon">🌙</span>
+          <span class="theme-label desktop-only" id="theme-label">Night</span>
+        </button>
+
+        <!-- Leader Login Button -->
+        <button id="btn-login-modal" class="btn btn-auth logged-out" title="Leader Login" aria-label="Leader Login">
+          <span id="auth-status-icon">🔒</span>
+          <span id="auth-status-text" class="desktop-only">Login</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="btn-settings-modal" class="btn btn-settings" title="Ward Settings & Logins" aria-label="Settings">
+          <span>⚙️</span>
         </button>
       </div>
     </div>
@@ -109,17 +159,6 @@
 
   <!-- Main Content Dashboard -->
   <main class="main-container" id="main-content">
-    
-    <!-- Meeting Type Control Bar -->
-    <div class="meeting-type-bar" role="toolbar" aria-label="Select meeting type">
-      <span class="meeting-type-label">Meeting Type:</span>
-      <div class="meeting-type-buttons" role="radiogroup">
-        <button type="button" class="meeting-type-btn active" data-type="standard" title="Regular Sunday meeting with assigned talks">⛪ Standard</button>
-        <button type="button" class="meeting-type-btn" data-type="fast_and_testimony" title="Fast and Testimony Sunday (Members bear testimony, no talks)">🍞 Fast & Testimony</button>
-        <button type="button" class="meeting-type-btn" data-type="general_conference" title="General Conference broadcast (No local ward meeting)">📡 General Conference</button>
-        <button type="button" class="meeting-type-btn" data-type="stake_conference" title="Stake Conference at Stake Center (No local ward meeting)">🏛️ Stake Conference</button>
-      </div>
-    </div>
 
     <!-- Conference Special Banner (Visible during General or Stake Conference) -->
     <section class="card card-conference" id="conference-card" style="display: none;">
@@ -132,26 +171,30 @@
       </div>
       <div class="card-body conference-body">
         <div class="conf-alert-box">
-          <p class="conf-lead" id="conf-notice-text">Notice: No local ward sacrament meeting or 2nd hour Sunday School/Quorum classes will be held today.</p>
+          <p class="conf-lead" id="conf-notice-text">Notice: No local ward sacrament meeting or 2nd hour Sunday
+            School/Quorum classes will be held today.</p>
         </div>
-        
+
         <div class="conf-form-grid">
           <div class="conf-field">
             <label class="field-label" for="conf-title">Conference Title</label>
-            <input type="text" id="conf-title" class="text-input" placeholder="e.g. 196th Semiannual General Conference">
+            <input type="text" id="conf-title" class="text-input"
+              placeholder="e.g. 196th Semiannual General Conference">
           </div>
 
           <div class="conf-field">
             <label class="field-label" for="conf-url">Broadcast / Stream Link</label>
             <div class="input-with-action">
-              <input type="url" id="conf-url" class="text-input text-url" placeholder="https://www.churchofjesuschrist.org/general-conference">
+              <input type="url" id="conf-url" class="text-input text-url"
+                placeholder="https://www.churchofjesuschrist.org/general-conference">
               <a id="conf-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Stream Link">🔗</a>
             </div>
           </div>
 
           <div class="conf-field full-width">
             <label class="field-label" for="conf-details">Sessions Schedule & Notes</label>
-            <textarea id="conf-details" class="text-area-input" rows="3" placeholder="Saturday Sessions: 10:00 AM, 2:00 PM, 6:00 PM&#10;Sunday Sessions: 10:00 AM, 2:00 PM"></textarea>
+            <textarea id="conf-details" class="text-area-input" rows="3"
+              placeholder="Saturday Sessions: 10:00 AM, 2:00 PM, 6:00 PM&#10;Sunday Sessions: 10:00 AM, 2:00 PM"></textarea>
           </div>
         </div>
       </div>
@@ -159,7 +202,7 @@
 
     <!-- Top Section: Sacrament Meeting, Hymns & Talks Order -->
     <section class="section-top-grid" id="ward-meeting-top-grid">
-      
+
       <!-- Panel 1: Sacrament Meeting Program -->
       <article class="card card-sacrament tab-content" id="panel-sacrament">
         <div class="card-header">
@@ -168,8 +211,7 @@
             <h2 class="card-title" id="sacrament-card-title">Sacrament Meeting</h2>
           </div>
           <div class="card-header-actions">
-            <a href="/study.html?tab=talks" id="btn-curate-talks-header" class="btn-browse-pill" title="Curate General Conference Talks for this Sunday">Curate Talks ↗</a>
-            <span class="pill-badge pill-amber" id="sacrament-card-badge">Main Service</span>
+            <span class="pill-badge pill-amber" id="sacrament-card-badge">1st Hour</span>
           </div>
         </div>
 
@@ -178,12 +220,13 @@
           <div class="fast-testimony-banner" id="fast-testimony-banner" style="display: none;">
             <span class="banner-icon">🍞</span>
             <div>
-              <strong>Fast & Testimony Sunday:</strong> Following the sacrament, time is devoted for congregation members to bear their testimonies. No assigned talks are scheduled.
+              <strong>Fast & Testimony Sunday:</strong> Following the sacrament, time is devoted for congregation
+              members to bear their testimonies. No assigned talks are scheduled.
             </div>
           </div>
 
           <div class="form-table">
-            
+
             <!-- Opening Prayer -->
             <div class="form-row">
               <label class="row-label" for="opening-prayer-name">Opening Prayer</label>
@@ -192,7 +235,8 @@
                   <option value="Brother">Brother</option>
                   <option value="Sister">Sister</option>
                 </select>
-                <input type="text" id="opening-prayer-name" class="text-input" placeholder="Speaker Name" list="names-datalist" autocomplete="off">
+                <input type="text" id="opening-prayer-name" class="text-input" placeholder="Speaker Name"
+                  list="names-datalist" autocomplete="off">
               </div>
             </div>
 
@@ -211,15 +255,24 @@
                       <option value="Stake High Councilor">Stake High Councilor</option>
                       <option value="Custom">Custom...</option>
                     </select>
-                    <input type="text" id="talk1-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                    <input type="text" id="talk1-org-custom" class="text-input text-xs org-custom-input"
+                      placeholder="Custom role" style="display:none;">
                   </div>
-                  <a href="/study.html?tab=gp" id="btn-curate-gp-link" class="btn-browse-pill" title="Curate Gospel Principles for Youth Talk">Youth Topic ↗</a>
                 </div>
                 <div class="speaker-topic-group">
-                  <input type="text" id="talk1-title" class="text-input font-medium" placeholder="Topic: e.g. Seminary and Institute Graduations" list="topics-datalist">
+                  <div class="input-with-action">
+                    <input type="text" id="talk1-title" class="text-input font-medium"
+                      placeholder="Topic: e.g. Seminary and Institute Graduations" list="topics-datalist">
+                    <a href="/study.html?tab=gp" id="btn-curate-gp-link" class="link-action-btn"
+                      title="Go to Gospel Principles / Youth Topics">&#128279;</a>
+                  </div>
                   <div class="speaker-field">
-                    <span class="field-prepend">By:</span>
-                    <input type="text" id="talk1-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                    <select id="talk1-speaker-role" class="select-role" aria-label="Speaker role">
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                    </select>
+                    <input type="text" id="talk1-speaker" class="text-input" placeholder="Speaker Name"
+                      list="names-datalist">
                   </div>
                 </div>
               </div>
@@ -238,18 +291,26 @@
                       <option value="Bishopric">Bishopric</option>
                       <option value="Custom">Custom...</option>
                     </select>
-                    <input type="text" id="talk2-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                    <input type="text" id="talk2-org-custom" class="text-input text-xs org-custom-input"
+                      placeholder="Custom role" style="display:none;">
                   </div>
                 </div>
                 <div class="speaker-topic-group">
                   <div class="input-with-action">
-                    <input type="text" id="talk2-title" class="text-input font-medium" placeholder="Topic: e.g. A New Normal" list="topics-datalist">
-                    <a id="talk2-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL" style="display:none;">🔗</a>
+                    <input type="text" id="talk2-title" class="text-input font-medium"
+                      placeholder="Topic: e.g. A New Normal" list="topics-datalist">
+                    <a id="talk2-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL"
+                      style="display:none;">&#128279;</a>
                   </div>
-                  <input type="url" id="talk2-url" class="text-input text-url text-sm" placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
+                  <input type="url" id="talk2-url" class="text-input text-url text-sm"
+                    placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
                   <div class="speaker-field">
-                    <span class="field-prepend">By:</span>
-                    <input type="text" id="talk2-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                    <select id="talk2-speaker-role" class="select-role" aria-label="Speaker role">
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                    </select>
+                    <input type="text" id="talk2-speaker" class="text-input" placeholder="Speaker Name"
+                      list="names-datalist">
                   </div>
                 </div>
               </div>
@@ -269,22 +330,29 @@
                       <option value="Youth - Young Women">Youth - Young Women</option>
                       <option value="Custom">Custom...</option>
                     </select>
-                    <input type="text" id="talk3-org-custom" class="text-input text-xs org-custom-input" placeholder="Custom role" style="display:none;">
+                    <input type="text" id="talk3-org-custom" class="text-input text-xs org-custom-input"
+                      placeholder="Custom role" style="display:none;">
                   </div>
                 </div>
                 <div class="speaker-topic-group">
                   <div class="input-with-action">
-                    <input type="text" id="talk3-title" class="text-input font-medium" placeholder="Topic: e.g. Sacrifice (Gospel Principles)" list="topics-datalist">
-                    <a id="talk3-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL" style="display:none;">🔗</a>
+                    <input type="text" id="talk3-title" class="text-input font-medium"
+                      placeholder="Topic: e.g. Sacrifice (Gospel Principles)" list="topics-datalist">
+                    <a id="talk3-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Talk Study URL"
+                      style="display:none;">&#128279;</a>
                   </div>
-                  <input type="url" id="talk3-url" class="text-input text-url text-sm" placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
+                  <input type="url" id="talk3-url" class="text-input text-url text-sm"
+                    placeholder="Optional talk link (https://churchofjesuschrist.org/...)">
                   <div class="speaker-field">
-                    <span class="field-prepend">By:</span>
-                    <input type="text" id="talk3-speaker" class="text-input" placeholder="Speaker Name" list="names-datalist">
+                    <select id="talk3-speaker-role" class="select-role" aria-label="Speaker role">
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                    </select>
+                    <input type="text" id="talk3-speaker" class="text-input" placeholder="Speaker Name"
+                      list="names-datalist">
                   </div>
                 </div>
               </div>
-
             </div>
 
             <!-- Closing Prayer -->
@@ -295,7 +363,8 @@
                   <option value="Sister">Sister</option>
                   <option value="Brother">Brother</option>
                 </select>
-                <input type="text" id="closing-prayer-name" class="text-input" placeholder="Speaker Name" list="names-datalist" autocomplete="off">
+                <input type="text" id="closing-prayer-name" class="text-input" placeholder="Speaker Name"
+                  list="names-datalist" autocomplete="off">
               </div>
             </div>
 
@@ -311,7 +380,8 @@
             <h2 class="card-title">Hymns</h2>
           </div>
           <div class="card-header-actions">
-            <a href="/study.html?tab=hymns" id="btn-curate-hymns-header" class="btn-browse-pill" title="Curate Hymns & Music">Curate Hymns ↗</a>
+            <a href="/study.html?tab=hymns" id="btn-curate-hymns-header" class="btn-browse-pill"
+              title="Curate Hymns & Music">Curate Hymns ↗</a>
             <span class="pill-badge pill-blue">Music</span>
           </div>
         </div>
@@ -319,22 +389,26 @@
         <div class="card-body hymns-list">
           <div class="hymn-input-group">
             <label class="hymn-label" for="hymn-opening">Opening Hymn</label>
-            <input type="text" id="hymn-opening" class="text-input hymn-input" placeholder="# / Title (e.g. #2 - The Spirit of God)" list="hymns-datalist">
+            <input type="text" id="hymn-opening" class="text-input hymn-input"
+              placeholder="# / Title (e.g. #2 - The Spirit of God)" list="hymns-datalist">
           </div>
 
           <div class="hymn-input-group">
             <label class="hymn-label" for="hymn-sacrament">Sacrament Hymn</label>
-            <input type="text" id="hymn-sacrament" class="text-input hymn-input" placeholder="# / Title (e.g. #193 - I Stand All Amazed)" list="hymns-datalist">
+            <input type="text" id="hymn-sacrament" class="text-input hymn-input"
+              placeholder="# / Title (e.g. #193 - I Stand All Amazed)" list="hymns-datalist">
           </div>
 
           <div class="hymn-input-group">
             <label class="hymn-label" for="hymn-interlude">Interlude / Rest</label>
-            <input type="text" id="hymn-interlude" class="text-input hymn-input" placeholder="Optional (e.g. Special Musical Number)" list="hymns-datalist">
+            <input type="text" id="hymn-interlude" class="text-input hymn-input"
+              placeholder="Optional (e.g. Special Musical Number)" list="hymns-datalist">
           </div>
 
           <div class="hymn-input-group">
             <label class="hymn-label" for="hymn-closing">Closing Hymn</label>
-            <input type="text" id="hymn-closing" class="text-input hymn-input" placeholder="# / Title (e.g. #243 - Let Us All Press On)" list="hymns-datalist">
+            <input type="text" id="hymn-closing" class="text-input hymn-input"
+              placeholder="# / Title (e.g. #243 - Let Us All Press On)" list="hymns-datalist">
           </div>
         </div>
       </article>
@@ -390,18 +464,16 @@
             <h2 class="card-title">Second Hour Classes (25 Minutes Each)</h2>
           </div>
           <div class="card-header-actions">
-            <button id="btn-autofill-cfm" class="btn btn-sm btn-outline-cfm" type="button" title="Automatically match Come, Follow Me and FSY Sunday lessons to this date">
+            <button id="btn-autofill-cfm" class="btn btn-sm btn-outline-cfm" type="button"
+              title="Automatically match Come, Follow Me and FSY Sunday lessons to this date">
               <span>⚡ Auto-Fill CFM & FSY</span>
-            </button>
-            <button id="btn-autofill-fsy" class="btn btn-sm btn-outline-fsy" type="button" title="Automatically match FSY Sunday lesson for Young Men and Young Women">
-              <span>🌟 Auto-Fill FSY</span>
             </button>
             <span class="pill-badge pill-terracotta">Instruction & Quorums</span>
           </div>
         </div>
 
         <div class="card-body classes-layout">
-          
+
           <!-- 1st Class: Sunday School -->
           <div class="class-block sunday-school-block">
             <div class="class-block-header">
@@ -416,15 +488,38 @@
               <div class="class-topic-col">
                 <label class="field-label" for="ss-topic">Lesson Topic & Scripture Reference</label>
                 <div class="input-with-action">
-                  <textarea id="ss-topic" class="text-area-input" rows="2" placeholder="e.g. September 7–13: “He Shall Direct Thy Paths” Proverbs 1–4; 15–16; 22; 31; Ecclesiastes 1–3; 11–12"></textarea>
-                  <a id="ss-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Come Follow Me Lesson" style="display:none;">🔗</a>
+                  <textarea id="ss-topic" class="text-area-input" rows="2"
+                    placeholder="e.g. September 7–13: “He Shall Direct Thy Paths” Proverbs 1–4; 15–16; 22; 31; Ecclesiastes 1–3; 11–12"></textarea>
+                  <a id="ss-link-btn" href="#" target="_blank" class="link-action-btn"
+                    title="Open Come Follow Me Lesson" style="display:none;">🔗</a>
                 </div>
-                <input type="url" id="ss-url" class="text-input text-url text-sm" placeholder="Lesson study link (https://churchofjesuschrist.org/study/come-follow-me/...)">
+                <input type="url" id="ss-url" class="text-input text-url text-sm"
+                  placeholder="Lesson study link (https://churchofjesuschrist.org/study/come-follow-me/...)">
               </div>
 
               <div class="class-teacher-col">
-                <label class="field-label" for="ss-teacher">Teacher Name</label>
-                <input type="text" id="ss-teacher" class="text-input" placeholder="Teacher Name" list="names-datalist">
+                <div class="teacher-input-subgroup">
+                  <label class="field-label" for="ss-teacher">Adults Teacher</label>
+                  <div class="teacher-with-role">
+                    <select id="ss-teacher-role" class="select-role-sm" aria-label="Adult SS teacher role">
+                      <option value="Brother">Bro.</option>
+                      <option value="Sister">Sis.</option>
+                    </select>
+                    <input type="text" id="ss-teacher" class="text-input" placeholder="Teacher Name"
+                      list="names-datalist">
+                  </div>
+                </div>
+                <div class="teacher-input-subgroup" style="margin-top: 8px;">
+                  <label class="field-label" for="ss-youth-teacher">Youth Teacher</label>
+                  <div class="teacher-with-role">
+                    <select id="ss-youth-teacher-role" class="select-role-sm" aria-label="Youth SS teacher role">
+                      <option value="Brother">Bro.</option>
+                      <option value="Sister">Sis.</option>
+                    </select>
+                    <input type="text" id="ss-youth-teacher" class="text-input" placeholder="Youth Teacher"
+                      list="names-datalist">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -449,18 +544,31 @@
                   </tr>
                 </thead>
                 <tbody>
-                  
+
                   <!-- Elders Quorum -->
                   <tr>
                     <td class="org-cell">
                       <span class="org-tag org-eq">Elders Quorum</span>
                     </td>
                     <td>
-                      <input type="text" id="eq-topic" class="text-input table-input" placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
-                      <input type="url" id="eq-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                      <div class="input-with-action">
+                        <input type="text" id="eq-topic" class="text-input table-input font-medium"
+                          placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
+                        <a id="eq-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Study Link"
+                          style="display:none;">&#128279;</a>
+                      </div>
+                      <input type="url" id="eq-url" class="text-input text-url text-xs"
+                        placeholder="Study link (optional)">
                     </td>
                     <td>
-                      <input type="text" id="eq-teacher" class="text-input table-input" placeholder="Teacher Name" list="names-datalist">
+                      <div class="teacher-with-role">
+                        <select id="eq-teacher-role" class="select-role-sm" aria-label="EQ teacher role">
+                          <option value="Brother">Bro.</option>
+                          <option value="Sister">Sis.</option>
+                        </select>
+                        <input type="text" id="eq-teacher" class="text-input table-input" placeholder="Teacher Name"
+                          list="names-datalist">
+                      </div>
                     </td>
                   </tr>
 
@@ -470,11 +578,24 @@
                       <span class="org-tag org-rs">Relief Society</span>
                     </td>
                     <td>
-                      <input type="text" id="rs-topic" class="text-input table-input" placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
-                      <input type="url" id="rs-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                      <div class="input-with-action">
+                        <input type="text" id="rs-topic" class="text-input table-input font-medium"
+                          placeholder="e.g. Watch Ye Therefore, and Pray Always" list="topics-datalist">
+                        <a id="rs-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Study Link"
+                          style="display:none;">&#128279;</a>
+                      </div>
+                      <input type="url" id="rs-url" class="text-input text-url text-xs"
+                        placeholder="Study link (optional)">
                     </td>
                     <td>
-                      <input type="text" id="rs-teacher" class="text-input table-input" placeholder="Teacher (e.g. Sahitya)" list="names-datalist">
+                      <div class="teacher-with-role">
+                        <select id="rs-teacher-role" class="select-role-sm" aria-label="RS teacher role">
+                          <option value="Sister">Sis.</option>
+                          <option value="Brother">Bro.</option>
+                        </select>
+                        <input type="text" id="rs-teacher" class="text-input table-input" placeholder="Teacher Name"
+                          list="names-datalist">
+                      </div>
                     </td>
                   </tr>
 
@@ -484,11 +605,24 @@
                       <span class="org-tag org-ym">Young Men</span>
                     </td>
                     <td>
-                      <input type="text" id="ym-topic" class="text-input table-input" placeholder="Lesson Topic" list="topics-datalist">
-                      <input type="url" id="ym-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                      <div class="input-with-action">
+                        <input type="text" id="ym-topic" class="text-input table-input font-medium" placeholder="Lesson Topic"
+                          list="topics-datalist">
+                        <a id="ym-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Study Link"
+                          style="display:none;">&#128279;</a>
+                      </div>
+                      <input type="url" id="ym-url" class="text-input text-url text-xs"
+                        placeholder="Study link (optional)">
                     </td>
                     <td>
-                      <input type="text" id="ym-teacher" class="text-input table-input" placeholder="Teacher / Advisor" list="names-datalist">
+                      <div class="teacher-with-role">
+                        <select id="ym-teacher-role" class="select-role-sm" aria-label="YM leader role">
+                          <option value="Brother">Bro.</option>
+                          <option value="Sister">Sis.</option>
+                        </select>
+                        <input type="text" id="ym-teacher" class="text-input table-input"
+                          placeholder="Teacher / Advisor" list="names-datalist">
+                      </div>
                     </td>
                   </tr>
 
@@ -498,11 +632,24 @@
                       <span class="org-tag org-yw">Young Women</span>
                     </td>
                     <td>
-                      <input type="text" id="yw-topic" class="text-input table-input" placeholder="Lesson Topic" list="topics-datalist">
-                      <input type="url" id="yw-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                      <div class="input-with-action">
+                        <input type="text" id="yw-topic" class="text-input table-input font-medium" placeholder="Lesson Topic"
+                          list="topics-datalist">
+                        <a id="yw-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Study Link"
+                          style="display:none;">&#128279;</a>
+                      </div>
+                      <input type="url" id="yw-url" class="text-input text-url text-xs"
+                        placeholder="Study link (optional)">
                     </td>
                     <td>
-                      <input type="text" id="yw-teacher" class="text-input table-input" placeholder="Teacher / Advisor" list="names-datalist">
+                      <div class="teacher-with-role">
+                        <select id="yw-teacher-role" class="select-role-sm" aria-label="YW leader role">
+                          <option value="Sister">Sis.</option>
+                          <option value="Brother">Bro.</option>
+                        </select>
+                        <input type="text" id="yw-teacher" class="text-input table-input"
+                          placeholder="Teacher / Advisor" list="names-datalist">
+                      </div>
                     </td>
                   </tr>
 
@@ -512,11 +659,24 @@
                       <span class="org-tag org-primary">Primary</span>
                     </td>
                     <td>
-                      <input type="text" id="pri-topic" class="text-input table-input" placeholder="Primary Lesson Topic" list="topics-datalist">
-                      <input type="url" id="pri-url" class="text-input text-url text-xs" placeholder="Study link (optional)">
+                      <div class="input-with-action">
+                        <input type="text" id="pri-topic" class="text-input table-input font-medium"
+                          placeholder="Primary Lesson Topic" list="topics-datalist">
+                        <a id="pri-link-btn" href="#" target="_blank" class="link-action-btn" title="Open Study Link"
+                          style="display:none;">&#128279;</a>
+                      </div>
+                      <input type="url" id="pri-url" class="text-input text-url text-xs"
+                        placeholder="Study link (optional)">
                     </td>
                     <td>
-                      <input type="text" id="pri-teacher" class="text-input table-input" placeholder="Teacher / Music Leader" list="names-datalist">
+                      <div class="teacher-with-role">
+                        <select id="pri-teacher-role" class="select-role-sm" aria-label="Primary teacher role">
+                          <option value="Sister">Sis.</option>
+                          <option value="Brother">Bro.</option>
+                        </select>
+                        <input type="text" id="pri-teacher" class="text-input table-input"
+                          placeholder="Teacher / Music Leader" list="names-datalist">
+                      </div>
                     </td>
                   </tr>
 
@@ -547,6 +707,7 @@
           <button class="preset-btn active" data-preset="full">🌟 Full Agenda</button>
           <button class="preset-btn" data-preset="sacrament">⛪ Sacrament</button>
           <button class="preset-btn" data-preset="classes">📖 Classes</button>
+          <button class="preset-btn" data-preset="assignments">📋 Assignments</button>
           <button class="preset-btn" data-preset="reminder">👤 Remind Member</button>
         </div>
 
@@ -574,11 +735,17 @@
 
       <div class="modal-footer">
         <button id="btn-copy-text" class="btn btn-secondary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+          </svg>
           <span>Copy Text</span>
         </button>
         <button id="btn-share-whatsapp-direct" class="btn btn-whatsapp btn-large">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.299.144.347.491 1.2.534 1.288.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.861.174.086.275.072.376-.043.101-.116.433-.506.549-.679.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.071.043.419-.101.824z" />
+          </svg>
           <span>Share to WhatsApp</span>
         </button>
       </div>
@@ -586,7 +753,8 @@
   </div>
 
   <!-- Beautiful Full Date Calendar & Celebrations Modal -->
-  <div id="full-calendar-modal" class="modal-backdrop full-calendar-backdrop" role="dialog" aria-modal="true" aria-labelledby="full-cal-title">
+  <div id="full-calendar-modal" class="modal-backdrop full-calendar-backdrop" role="dialog" aria-modal="true"
+    aria-labelledby="full-cal-title">
     <div class="modal-card full-calendar-card">
       <div class="modal-header">
         <div class="modal-title-group">
@@ -619,7 +787,8 @@
               <span class="toggle-text">⛪ LDS Celebrations</span>
             </label>
 
-            <label class="cal-toggle-pill cal-toggle-indian" title="Toggle Indian & Hindu holidays fetched live from Google Calendar">
+            <label class="cal-toggle-pill cal-toggle-indian"
+              title="Toggle Indian & Hindu holidays fetched live from Google Calendar">
               <input type="checkbox" id="cal-toggle-indian" checked>
               <span class="toggle-indicator"></span>
               <span class="toggle-text">🪔 Indian / Hindu Holidays</span>
@@ -688,6 +857,140 @@
     <option value="#304 - Teach Me to Walk in the Light">
   </datalist>
 
+  <!-- Overall Agenda Spreadsheet Modal -->
+  <div class="modal-backdrop" id="overall-agenda-modal" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="dialog" aria-labelledby="overall-agenda-title">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">📊</span>
+          <h3 id="overall-agenda-title" class="modal-title">Overall Agenda — Spreadsheet View</h3>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="btn-agenda-sheet-prev" class="btn btn-secondary btn-sm" title="Previous Month">‹ Prev</button>
+          <span id="agenda-sheet-month-label" class="popover-month-label"
+            style="min-width:130px;text-align:center;"></span>
+          <button id="btn-agenda-sheet-next" class="btn btn-secondary btn-sm" title="Next Month">Next ›</button>
+          <button id="btn-close-overall-agenda" class="btn-close" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:0;overflow:auto;">
+        <div id="agenda-sheet-wrap" class="agenda-sheet-wrap">
+          <table class="agenda-sheet-table" id="agenda-sheet-table">
+            <thead id="agenda-sheet-thead"></thead>
+            <tbody id="agenda-sheet-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Modify / Save Changes Action Bar -->
+  <div id="modify-bar" class="modify-bar" aria-hidden="true">
+    <div class="modify-bar-content">
+      <div class="modify-bar-info">
+        <span class="modify-indicator">●</span>
+        <span class="modify-text" id="modify-status-text">Unsaved changes</span>
+      </div>
+      <div class="modify-bar-actions">
+        <button id="btn-discard-changes" class="btn btn-ghost btn-sm btn-discard" type="button" title="Discard unsaved changes">Discard</button>
+        <button id="btn-save-modify" class="btn btn-modify btn-sm" type="button" title="Save and apply all modifications">
+          <span>💾 Modify & Save</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leader Login Modal -->
+  <div class="modal-backdrop" id="login-modal" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-labelledby="login-modal-title" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">🔐</span>
+          <h3 id="login-modal-title" class="modal-title" data-i18n="login.modal_title">Leader Access Login</h3>
+        </div>
+        <button id="btn-close-login-modal" class="btn-close" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body" style="gap: 16px;">
+        <p class="conf-lead" data-i18n="login.instruction" style="margin: 0; font-size: 0.88rem;">
+          Enter your name or phone number + "dowleswaram" (no spaces) to unlock editing:
+        </p>
+        <div>
+          <input type="text" id="login-string-input" class="text-input full-width"
+            placeholder="e.g. Bishopdowleswaram or 9876543210dowleswaram" autocomplete="off" autocorrect="off">
+          <span class="pill-source-note" style="margin-top: 6px; display: block;">💡 Valid format: <code>[Name/Phone]dowleswaram</code> (no spaces)</span>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button id="btn-cancel-login" class="btn btn-secondary btn-sm">Cancel</button>
+          <button id="btn-submit-login" class="btn btn-primary btn-sm" style="font-weight: 700;">
+            <span data-i18n="login.submit">Unlock Editing</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ward Settings Modal -->
+  <div class="modal-backdrop" id="settings-modal" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="dialog" aria-labelledby="settings-modal-title" style="max-width: 800px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon">⚙️</span>
+          <h3 id="settings-modal-title" class="modal-title" data-i18n="settings.modal_title">Ward Settings & Logins</h3>
+        </div>
+        <button id="btn-close-settings-modal" class="btn-close" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-tabs">
+          <button class="settings-tab-btn active" data-tab="tab-users" data-i18n="settings.tab_users">Authorized Leaders</button>
+          <button class="settings-tab-btn" data-tab="tab-general" data-i18n="settings.tab_general">General Settings</button>
+        </div>
+
+        <div id="settings-tab-users" class="settings-content active" style="margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.86rem; color: var(--text-muted);">Manage leaders allowed to login with passkey</span>
+            <button id="btn-add-leader" class="btn btn-primary btn-sm" style="font-size: 0.8rem;">
+              <span>+ Add Leader</span>
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="users-table" id="auth-users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Passkey</th>
+                  <th>Role / Calling</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="auth-users-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="settings-tab-general" class="settings-content" style="display: none; margin-top: 10px;">
+          <div class="conf-form-grid">
+            <div class="conf-field">
+              <label class="field-label">Ward Name</label>
+              <input type="text" id="setting-ward-name" class="text-input" value="Dowleswaram Ward">
+            </div>
+            <div class="conf-field">
+              <label class="field-label">Primary Language</label>
+              <select id="setting-default-lang" class="filter-select full-width">
+                <option value="en">English</option>
+                <option value="te">తెలుగు (Telugu)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
+
 </html>

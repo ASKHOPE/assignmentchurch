@@ -11,18 +11,38 @@ import {
   searchConferenceTalks,
   getComeFollowMe,
   searchGospelPrinciples,
-  getFsyLessons
+  getFsyLessons,
+  getConferenceMeta,
+  getFsyMeta,
+  authenticateUser,
+  getAllAuthUsers,
+  saveAuthUser,
+  deleteAuthUser
 } from "./db";
 import { 
   formatFullAgendaWhatsApp, 
   formatSacramentWhatsApp, 
   formatClassesWhatsApp, 
+  formatAssignmentsWhatsApp,
   formatIndividualReminderWhatsApp, 
   getWhatsAppShareUrl 
 } from "./whatsapp-formatter";
 import { getNextSunday, getPrevSunday } from "./agenda-utils";
 import { getHolidaysForYear } from "./holidays";
+import { defaultRateLimiter } from "./rate-limiter";
+import { defaultWriteQueue } from "./write-queue";
 import { join } from "path";
+
+function getOrSetEditorId(req: Request): { editorId: string; isNew: boolean; cookieHeader?: string } {
+  const cookieHeader = req.headers.get("cookie") || "";
+  const match = cookieHeader.match(/ward_editor_id=([^;]+)/);
+  if (match && match[1]) {
+    return { editorId: match[1].trim(), isNew: false };
+  }
+  const editorId = `editor_${crypto.randomUUID()}`;
+  const newCookie = `ward_editor_id=${editorId}; Path=/; Max-Age=31536000; SameSite=Lax; HttpOnly`;
+  return { editorId, isNew: true, cookieHeader: newCookie };
+}
 
 export function createServer(dbPath: string = "agenda.db", port: number = 3000) {
   const db = initDb(dbPath);
@@ -32,6 +52,18 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
     async fetch(req) {
       const url = new URL(req.url);
       const path = url.pathname;
+      const { editorId, isNew, cookieHeader } = getOrSetEditorId(req);
+
+      const withHeaders = (headers: Record<string, string> = {}): Record<string, string> => {
+        const resHeaders: Record<string, string> = {
+          "Access-Control-Allow-Origin": "*",
+          ...headers,
+        };
+        if (isNew && cookieHeader) {
+          resHeaders["Set-Cookie"] = cookieHeader;
+        }
+        return resHeaders;
+      };
 
       // Handle CORS for local network development
       if (req.method === "OPTIONS") {
@@ -42,6 +74,27 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             "Access-Control-Allow-Headers": "Content-Type",
           },
         });
+      }
+
+      // Rate Limiter Enforcement
+      const isWrite = req.method === "PUT" || req.method === "POST" || req.method === "DELETE";
+      const clientKey = `${editorId}:${req.headers.get("x-forwarded-for") || "local"}`;
+      const rateResult = defaultRateLimiter.check(clientKey, isWrite);
+
+      if (!rateResult.allowed) {
+        return Response.json(
+          {
+            success: false,
+            error: "Too many modifications. Please wait a moment before saving again.",
+            resetInSec: rateResult.resetInSec,
+          },
+          {
+            status: 429,
+            headers: withHeaders({
+              "Retry-After": String(rateResult.resetInSec),
+            }),
+          }
+        );
       }
 
       // REST API Routes
@@ -55,20 +108,29 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             }
             const data = getAgendaByDate(db, date);
             return Response.json({ success: true, data }, {
-              headers: { "Access-Control-Allow-Origin": "*" }
+              headers: withHeaders()
             });
           }
 
-          // PUT /api/agenda/:date
+          // PUT /api/agenda/:date (Serialized through per-date write queue)
           if (req.method === "PUT" && path.startsWith("/api/agenda/")) {
             const date = path.replace("/api/agenda/", "").trim();
             if (!date) {
               return Response.json({ success: false, error: "Date parameter required" }, { status: 400 });
             }
             const body = (await req.json()) as any;
-            const saved = saveAgenda(db, { ...body, date });
-            return Response.json({ success: true, data: saved }, {
-              headers: { "Access-Control-Allow-Origin": "*" }
+
+            const saved = await defaultWriteQueue.run(date, async () => {
+              return saveAgenda(db, { ...body, date });
+            });
+
+            return Response.json({ 
+              success: true, 
+              data: saved,
+              merged: Boolean(saved._isConcurrentMerge),
+              conflicts: saved._conflicts || [],
+            }, {
+              headers: withHeaders()
             });
           }
 
@@ -131,6 +193,77 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             });
           }
 
+          // GET /api/talks/meta
+          if (req.method === "GET" && path === "/api/talks/meta") {
+            const meta = getConferenceMeta(db);
+            return Response.json({ success: true, ...meta }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/fsy-lessons/meta
+          if (req.method === "GET" && path === "/api/fsy-lessons/meta") {
+            const meta = getFsyMeta(db);
+            return Response.json({ success: true, ...meta }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // POST /api/auth/login (Format: "[Name] dowleswaram")
+          if (req.method === "POST" && path === "/api/auth/login") {
+            const body = (await req.json().catch(() => ({}))) as any;
+            const input = body.login_string || body.passkey || "";
+            const result = authenticateUser(db, input);
+            if (!result.success) {
+              return Response.json({ success: false, error: result.error }, { status: 401 });
+            }
+            return Response.json({ success: true, user: result.user }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/auth/users (List users for settings)
+          if (req.method === "GET" && path === "/api/auth/users") {
+            const users = getAllAuthUsers(db);
+            return Response.json({ success: true, users }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // POST /api/auth/users (Add or update user login)
+          if (req.method === "POST" && path === "/api/auth/users") {
+            const body = (await req.json()) as any;
+            const result = saveAuthUser(db, body);
+            if (!result.success) {
+              return Response.json({ success: false, error: result.error }, { status: 400 });
+            }
+            return Response.json({ success: true, user: result.user }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // DELETE /api/auth/users/:id
+          if (req.method === "DELETE" && path.startsWith("/api/auth/users/")) {
+            const id = parseInt(path.replace("/api/auth/users/", ""), 10);
+            deleteAuthUser(db, id);
+            return Response.json({ success: true }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // POST /api/content/sync (Check for new conference talks and FSY content)
+          if (req.method === "POST" && path === "/api/content/sync") {
+            try {
+              const { updateAllContent } = await import("../scripts/update-content");
+              const result = await updateAllContent(dbPath);
+              return Response.json(result, {
+                headers: { "Access-Control-Allow-Origin": "*" }
+              });
+            } catch (err: any) {
+              return Response.json({ success: false, error: err.message }, { status: 500 });
+            }
+          }
+
           // GET /api/come-follow-me
           if (req.method === "GET" && path === "/api/come-follow-me") {
             const yearStr = url.searchParams.get("year");
@@ -179,6 +312,8 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
               text = formatSacramentWhatsApp(agenda);
             } else if (preset === "classes") {
               text = formatClassesWhatsApp(agenda);
+            } else if (preset === "assignments") {
+              text = formatAssignmentsWhatsApp(agenda);
             } else if (preset === "reminder") {
               text = formatIndividualReminderWhatsApp(
                 body.roleOrClass || "Speaker/Teacher",
@@ -229,20 +364,34 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
       const staticFile = Bun.file(join(import.meta.dir, "..", "public", filePath));
 
       if (await staticFile.exists()) {
-        return new Response(staticFile);
+        return new Response(staticFile, {
+          headers: isNew && cookieHeader ? { "Set-Cookie": cookieHeader } : undefined,
+        });
       }
 
       // Fallback to index.html for client SPA routing
       const indexFallback = Bun.file(join(import.meta.dir, "..", "public", "index.html"));
       if (await indexFallback.exists()) {
-        return new Response(indexFallback);
+        return new Response(indexFallback, {
+          headers: isNew && cookieHeader ? { "Set-Cookie": cookieHeader } : undefined,
+        });
       }
 
       return new Response("Not Found", { status: 404 });
     },
   });
 
-  return server;
+  return Object.assign(server, {
+    db,
+    close: () => {
+      server.stop(true);
+      try {
+        db.close();
+      } catch {
+        // ignore if already closed
+      }
+    },
+  });
 }
 
 // Start server if run directly

@@ -4,6 +4,7 @@ export interface ClassInfo {
   topic: string;
   url?: string;
   teacher: string;
+  teacher_role?: string;
 }
 
 export interface ClassesStructure {
@@ -25,14 +26,17 @@ export interface AgendaRecord {
   talk1_org: string; // "Bishopric" | "Stake High Councilor" | "Youth - Young Men" | "Youth - Young Women" | "Custom"
   talk1_title: string;
   talk1_url?: string;
+  talk1_speaker_role?: string;
   talk1_speaker: string;
   talk2_org: string; // "Elders Quorum" | "Relief Society" | "Youth - Young Men" | "Youth - Young Women" | "Stake High Councilor" | "Custom"
   talk2_title: string;
   talk2_url?: string;
+  talk2_speaker_role?: string;
   talk2_speaker: string;
   talk3_org?: string;
   talk3_title: string;
   talk3_url?: string;
+  talk3_speaker_role?: string;
   talk3_speaker: string;
   closing_prayer_role: string; // "Brother" | "Sister"
   closing_prayer_name: string;
@@ -170,14 +174,17 @@ export function createDefaultAgenda(dateStr: string): AgendaRecord {
     opening_prayer_name: "",
     talk1_org: "Bishopric",
     talk1_title: "",
+    talk1_speaker_role: "Brother",
     talk1_speaker: "Bishopric",
     talk2_org: org === "Fast & Testimony" ? "Youth - Young Men" : org,
     talk2_title: "",
     talk2_url: "",
+    talk2_speaker_role: (org === "Relief Society" || org === "Youth - Young Women") ? "Sister" : "Brother",
     talk2_speaker: "",
     talk3_org: "Member",
     talk3_title: "",
     talk3_url: "",
+    talk3_speaker_role: "Brother",
     talk3_speaker: "",
     closing_prayer_role: "Sister",
     closing_prayer_name: "",
@@ -186,13 +193,13 @@ export function createDefaultAgenda(dateStr: string): AgendaRecord {
     hymn_interlude: "",
     hymn_closing: "",
     classes_json: {
-      sunday_school: { topic: "", url: "", teacher: "" },
-      sunday_school_youth: { topic: "", url: "", teacher: "" },
-      elders_quorum: { topic: "", url: "", teacher: "" },
-      relief_society: { topic: "", url: "", teacher: "" },
-      young_men: { topic: "", url: "", teacher: "" },
-      young_women: { topic: "", url: "", teacher: "" },
-      primary: { topic: "", url: "", teacher: "" },
+      sunday_school: { topic: "", url: "", teacher_role: "Brother", teacher: "" },
+      sunday_school_youth: { topic: "", url: "", teacher_role: "Brother", teacher: "" },
+      elders_quorum: { topic: "", url: "", teacher_role: "Brother", teacher: "" },
+      relief_society: { topic: "", url: "", teacher_role: "Sister", teacher: "" },
+      young_men: { topic: "", url: "", teacher_role: "Brother", teacher: "" },
+      young_women: { topic: "", url: "", teacher_role: "Sister", teacher: "" },
+      primary: { topic: "", url: "", teacher_role: "Sister", teacher: "" },
     },
     conference_title: defaultMeetingType === "general_conference" ? "General Conference Broadcast" : "",
     conference_details: defaultMeetingType === "general_conference" 
