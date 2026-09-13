@@ -17,7 +17,8 @@ import {
   authenticateUser,
   getAllAuthUsers,
   saveAuthUser,
-  deleteAuthUser
+  deleteAuthUser,
+  runDatabaseSpeedtest
 } from "./db";
 import { 
   formatFullAgendaWhatsApp, 
@@ -247,6 +248,14 @@ export function createServer(dbPath: string = "agenda.db", port: number = 3000) 
             const id = parseInt(path.replace("/api/auth/users/", ""), 10);
             deleteAuthUser(db, id);
             return Response.json({ success: true }, {
+              headers: { "Access-Control-Allow-Origin": "*" }
+            });
+          }
+
+          // GET /api/speedtest (Database speed test & benchmarks)
+          if (req.method === "GET" && path === "/api/speedtest") {
+            const testResult = runDatabaseSpeedtest(db);
+            return Response.json({ success: true, ...testResult }, {
               headers: { "Access-Control-Allow-Origin": "*" }
             });
           }

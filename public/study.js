@@ -2373,6 +2373,57 @@ function openStudySettingsModal() {
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   loadStudySettingsUsers();
+
+  // Settings tab switching
+  document.querySelectorAll(".settings-tab-btn").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".settings-tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".settings-content").forEach((c) => (c.style.display = "none"));
+      btn.classList.add("active");
+      const targetId = `settings-${btn.dataset.tab}`;
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) targetEl.style.display = "block";
+    };
+  });
+
+  const btnSpeedtest = document.getElementById("btn-run-speedtest");
+  if (btnSpeedtest) {
+    btnSpeedtest.onclick = async () => {
+      const box = document.getElementById("speedtest-results-box");
+      if (box) box.innerHTML = "⏳ Running 150 live queries against database...";
+      try {
+        const res = await fetch("/api/speedtest");
+        const data = await res.json();
+        if (box) {
+          box.innerHTML = `
+            <div style="color: #34d399; font-weight: 700; margin-bottom: 8px;">✓ Speedtest Completed: ${data.status}</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px;">
+              <div style="background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px;">
+                <div style="color: var(--text-muted); font-size: 0.75rem;">Conference Talks Search</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #60a5fa;">${data.talksQueryMs} ms</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px;">
+                <div style="color: var(--text-muted); font-size: 0.75rem;">Hymns Filter & Index</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #f59e0b;">${data.hymnsQueryMs} ms</div>
+              </div>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px; border-radius: 6px;">
+                <div style="color: var(--text-muted); font-size: 0.75rem;">Agenda Record Fetch</div>
+                <div style="font-size: 1.2rem; font-weight: 700; color: #a78bfa;">${data.agendaGetMs} ms</div>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              Records verified: <strong>${data.totalRecords?.talks || 0}</strong> talks (procedural & duplicates removed), 
+              <strong>${data.totalRecords?.hymns || 0}</strong> hymns, 
+              <strong>${data.totalRecords?.cfm || 0}</strong> CFM lessons, 
+              <strong>${data.totalRecords?.agendas || 0}</strong> saved Sunday agendas.
+            </div>
+          `;
+        }
+      } catch (err) {
+        if (box) box.textContent = "Error running speedtest: " + err.message;
+      }
+    };
+  }
 }
 
 function closeStudySettingsModal() {

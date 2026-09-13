@@ -62,6 +62,8 @@ CREATE TABLE IF NOT EXISTS conference_talks (
 );
 CREATE INDEX IF NOT EXISTS idx_talks_speaker ON conference_talks(speaker);
 CREATE INDEX IF NOT EXISTS idx_talks_year ON conference_talks(year, month);
+CREATE INDEX IF NOT EXISTS idx_talks_title ON conference_talks(title);
+CREATE INDEX IF NOT EXISTS idx_talks_year_speaker ON conference_talks(year, speaker);
 
 CREATE TABLE IF NOT EXISTS come_follow_me (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

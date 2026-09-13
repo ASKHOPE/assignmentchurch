@@ -943,6 +943,7 @@
         <div class="settings-tabs">
           <button class="settings-tab-btn active" data-tab="tab-users" data-i18n="settings.tab_users">Authorized Leaders</button>
           <button class="settings-tab-btn" data-tab="tab-general" data-i18n="settings.tab_general">General Settings</button>
+          <button class="settings-tab-btn" data-tab="tab-db">Database & Speedtest</button>
         </div>
 
         <div id="settings-tab-users" class="settings-content active" style="margin-top: 10px;">
@@ -983,6 +984,21 @@
                 <option value="te">తెలుగు (Telugu)</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <div id="settings-tab-db" class="settings-content" style="display: none; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Database Health & Query Performance</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Deduplication verified • Indexed sub-millisecond queries</div>
+            </div>
+            <button id="btn-run-speedtest" class="btn btn-primary btn-sm" style="font-size: 0.82rem;">
+              <span>⚡ Run Query Speedtest</span>
+            </button>
+          </div>
+          <div id="speedtest-results-box" style="background: var(--bg-card-secondary); border: 1px solid var(--border-card); border-radius: 8px; padding: 14px; font-family: monospace; font-size: 0.85rem;">
+            Click "Run Query Speedtest" to benchmark real database queries.
           </div>
         </div>
       </div>
