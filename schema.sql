@@ -76,6 +76,48 @@ CREATE TABLE IF NOT EXISTS come_follow_me (
 );
 CREATE INDEX IF NOT EXISTS idx_cfm_year ON come_follow_me(year);
 
+CREATE TABLE IF NOT EXISTS gospel_principles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  chapter_number INTEGER NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  url TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gp_chapter ON gospel_principles(chapter_number);
+
+CREATE TABLE IF NOT EXISTS fsy_lessons (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  year INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  sunday_number INTEGER NOT NULL,
+  organization TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  url TEXT NOT NULL,
+  UNIQUE(year, month, sunday_number, organization)
+);
+CREATE INDEX IF NOT EXISTS idx_fsy_date ON fsy_lessons(year, month, sunday_number);
+
+CREATE TABLE IF NOT EXISTS auth_users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  passkey TEXT NOT NULL DEFAULT 'dowleswaram',
+  role TEXT NOT NULL DEFAULT 'Leader',
+  is_active INTEGER NOT NULL DEFAULT 1,
+  last_login TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed default auth users
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Bishop', 'dowleswaram', 'Bishopric', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Counselor', 'dowleswaram', 'Bishopric', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Elders Quorum', 'dowleswaram', 'Quorum Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Relief Society', 'dowleswaram', 'RS Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Sunday School', 'dowleswaram', 'SS Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Young Men', 'dowleswaram', 'YM Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Young Women', 'dowleswaram', 'YW Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Primary', 'dowleswaram', 'Primary Presidency', 1);
+INSERT OR IGNORE INTO auth_users (name, passkey, role, is_active) VALUES ('Admin', 'dowleswaram', 'Administrator', 1);
+
 -- Seed initial agenda for September 13, 2026 if not exists
 INSERT OR IGNORE INTO agendas (
   date, week_label, meeting_type, opening_prayer_role, opening_prayer_name,
